@@ -1,0 +1,23 @@
+# Ignore Go build artifacts
+*.exe
+*.exe~
+*.out
+*.test
+
+# Ignore build output directory (optional)
+src/bin/
+src/build/
+
+# Ignore vendor folder (if not vendoring)
+src/vendor/
+
+# OS / editor / tooling
+.DS_Store
+.idea/
+.vscode/
+
+# Env file (sensitive)
+src/.env
+
+# Logs
+*.log
