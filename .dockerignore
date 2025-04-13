@@ -1,0 +1,10 @@
+**/.env
+**/tmp
+**/node_modules
+**/src/tmp
+.dockerignore
+Dockerfile
+docker-compose.yml
+README.md
+.git
+.gitignore

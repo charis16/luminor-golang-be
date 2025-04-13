@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: luminor-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - luminor-net
+    env_file:
+      - ./src/.env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/healthz" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: luminor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - luminor-net
+    depends_on:
+      - app
+
+networks:
+  luminor-net:
+    driver: bridge
