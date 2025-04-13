@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/charis16/luminor-golang-be/controllers"
+	"github.com/charis16/luminor-golang-be/src/controllers"
 	"github.com/gin-gonic/gin"
 )
 

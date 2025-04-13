@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/charis16/luminor-golang-be/models"
-	"github.com/charis16/luminor-golang-be/services"
+	"github.com/charis16/luminor-golang-be/src/models"
+	"github.com/charis16/luminor-golang-be/src/services"
 	"github.com/gin-gonic/gin"
 )
 

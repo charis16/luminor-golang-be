@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/charis16/luminor-golang-be/config"
-	"github.com/charis16/luminor-golang-be/models"
+	"github.com/charis16/luminor-golang-be/src/config"
+	"github.com/charis16/luminor-golang-be/src/models"
 )
 
 func GetAllUsers() []models.User {

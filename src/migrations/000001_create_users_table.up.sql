@@ -16,7 +16,8 @@ CREATE TABLE users (
     url_tiktok VARCHAR(100),
     url_facebook VARCHAR(100),
     url_youtube VARCHAR(100),
-
+    
+    is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
