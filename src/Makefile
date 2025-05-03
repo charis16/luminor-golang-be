@@ -49,3 +49,6 @@ deps:
 
 # 🔄 Regenerate model full (clean + generate)
 regen-models: clean-models gen-model
+
+seed:
+	go run ./cmd/seeder

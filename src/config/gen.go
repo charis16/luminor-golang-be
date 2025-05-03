@@ -2,8 +2,8 @@ package config
 
 import (
 	"log"
-	"os"
 
+	"github.com/charis16/luminor-golang-be/src/utils"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gen"
@@ -18,12 +18,12 @@ func GenerateModels() {
 	}
 
 	// ✅ Ambil dari env
-	dsn := "host=" + os.Getenv("DB_HOST") +
-		" user=" + os.Getenv("DB_USER") +
-		" password=" + os.Getenv("DB_PASSWORD") +
-		" dbname=" + os.Getenv("DB_NAME") +
-		" port=" + os.Getenv("DB_PORT") +
-		" sslmode=" + os.Getenv("DB_SSLMODE")
+	dsn := "host=" + utils.GetEnvOrPanic("DB_HOST") +
+		" user=" + utils.GetEnvOrPanic("DB_USER") +
+		" password=" + utils.GetEnvOrPanic("DB_PASSWORD") +
+		" dbname=" + utils.GetEnvOrPanic("DB_NAME") +
+		" port=" + utils.GetEnvOrPanic("DB_PORT") +
+		" sslmode=" + utils.GetEnvOrPanic("DB_SSLMODE")
 
 	// ✅ Konfig generator
 	g := gen.NewGenerator(gen.Config{

@@ -2,10 +2,11 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/charis16/luminor-golang-be/src/config"
 	"github.com/charis16/luminor-golang-be/src/routes"
+	"github.com/charis16/luminor-golang-be/src/utils"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -18,13 +19,19 @@ func main() {
 	}
 
 	r := gin.Default()
-	config.ConnectDB()
-	routes.RegisterUserRoutes(r)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // fallback kalau .env tidak ada
-	}
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // frontend kamu
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
+	config.ConnectDB()
+	v1 := r.Group("/v1/api")
+	routes.RegisterUserRoutes(v1)
+	routes.RegisterAuthRoutes(v1)
+
+	port := utils.GetEnvOrDefault("PORT", "8080")
 
 	r.Run(":" + port)
 }
