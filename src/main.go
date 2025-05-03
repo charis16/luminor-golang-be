@@ -24,6 +24,7 @@ func main() {
 		AllowOrigins:     []string{"http://localhost:3000"}, // frontend kamu
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Set-Cookie"},
 		AllowCredentials: true,
 	}))
 	config.ConnectDB()
