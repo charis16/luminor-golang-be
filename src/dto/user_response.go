@@ -1,8 +1,20 @@
 package dto
 
-import "github.com/charis16/luminor-golang-be/src/models"
+import "time"
 
 type UserResponse struct {
-	models.User
-	ID any `json:"-"`
+	UUID         string    `json:"uuid"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	Photo        string    `json:"photo"`
+	Description  string    `json:"description"`
+	Role         string    `json:"role"`
+	PhoneNumber  string    `json:"phone_number"`
+	URLInstagram string    `json:"url_instagram"`
+	URLTiktok    string    `json:"url_tiktok"`
+	URLFacebook  string    `json:"url_facebook"`
+	URLYoutube   string    `json:"url_youtube"`
+	IsPublished  bool      `json:"is_published"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

@@ -13,6 +13,7 @@ import (
 func GetUsers(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")
+	search := c.Query("search")
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -26,7 +27,7 @@ func GetUsers(c *gin.Context) {
 		return
 	}
 
-	users, total, err := services.GetAllUsers(pageInt, limitInt)
+	users, total, err := services.GetAllUsers(pageInt, limitInt, search)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get users"})
 		return
