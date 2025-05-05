@@ -13,11 +13,13 @@ import (
 
 func main() {
 	// Load .env file
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("⚠️  .env not found, using default PORT 8080")
 	}
 
+	utils.InitMinio()
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{

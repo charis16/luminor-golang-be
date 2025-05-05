@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/charis16/luminor-golang-be/src/models"
 	"github.com/charis16/luminor-golang-be/src/services"
+	"github.com/charis16/luminor-golang-be/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,11 +41,53 @@ func GetUsers(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-	var input models.User
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	fmt.Println("Content-Type:", c.Request.Header.Get("Content-Type"))
+
+	name := c.PostForm("name")
+	email := c.PostForm("email")
+	role := c.PostForm("role")
+	description := c.PostForm("description")
+	password := c.PostForm("password")
+	urlInstagram := c.PostForm("url_instagram")
+	url_tikTok := c.PostForm("url_tikTok")
+	urlFacebook := c.PostForm("url_facebook")
+	urlYoutube := c.PostForm("url_youtube")
+	phoneNumber := c.PostForm("phone_number")
+	isPublished := c.PostForm("is_published")
+
+	if name == "" || email == "" || role == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and role are required"})
 		return
 	}
-	user := services.CreateUser(input)
-	c.JSON(http.StatusCreated, user)
+
+	var photoURL string
+
+	fileHeader, err := c.FormFile("photo")
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open uploaded file"})
+			return
+		}
+		defer file.Close()
+
+		fmt.Println("Uploading photo to Minio...")
+		photoURL, err = utils.UploadToMinio("users", file, fileHeader)
+		if err != nil {
+			fmt.Println("Failed to upload photo:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload photo"})
+			return
+		}
+		fmt.Println("Photo uploaded successfully. URL:", photoURL)
+	} else {
+		fmt.Println("No photo uploaded.")
+	}
+
+	user, err := services.CreateUser(name, email, role, description, photoURL, password, urlInstagram, url_tikTok, urlFacebook, urlYoutube, phoneNumber, isPublished)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": user})
 }
