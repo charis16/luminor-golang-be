@@ -10,7 +10,7 @@ func RegisterUserRoutes(rg *gin.RouterGroup) {
 	users := rg.Group("/users")
 	users.Use(middleware.RequireAuth(), middleware.RequireRole("admin"))
 	{
-		users.GET("/", controllers.GetUsers)
-		users.POST("/", controllers.CreateUser)
+		users.GET("/lists", controllers.GetUsers)
+		users.POST("/submit", controllers.CreateUser)
 	}
 }

@@ -66,7 +66,8 @@ func RefreshToken(c *gin.Context) {
 	setTokenCookies(c, newAccessToken, refreshToken)
 
 	c.JSON(http.StatusOK, gin.H{
-		"access_token": newAccessToken,
+		"access_token":  newAccessToken,
+		"refresh_token": refreshToken,
 	})
 }
 
