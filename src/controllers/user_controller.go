@@ -17,32 +17,32 @@ func GetUsers(c *gin.Context) {
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid page parameter")
 		return
 	}
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit parameter"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid limit parameter")
 		return
 	}
 
 	users, total, err := services.GetAllUsers(pageInt, limitInt, search)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get users"})
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get users")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.RespondSuccess(c, gin.H{
 		"data":  users,
 		"total": total,
 		"page":  pageInt,
 		"limit": limitInt,
 	})
+
 }
 
 func CreateUser(c *gin.Context) {
-	fmt.Println("Content-Type:", c.Request.Header.Get("Content-Type"))
 
 	name := c.PostForm("name")
 	email := c.PostForm("email")
@@ -57,7 +57,7 @@ func CreateUser(c *gin.Context) {
 	isPublished := c.PostForm("is_published")
 
 	if name == "" || email == "" || role == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and role are required"})
+		utils.RespondError(c, http.StatusBadRequest, "name, email, and role are required")
 		return
 	}
 
@@ -67,7 +67,7 @@ func CreateUser(c *gin.Context) {
 	if err == nil {
 		file, err := fileHeader.Open()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open uploaded file"})
+			utils.RespondError(c, http.StatusInternalServerError, "failed to open uploaded file")
 			return
 		}
 		defer file.Close()
@@ -75,20 +75,18 @@ func CreateUser(c *gin.Context) {
 		fmt.Println("Uploading photo to Minio...")
 		photoURL, err = utils.UploadToMinio("users", file, fileHeader)
 		if err != nil {
-			fmt.Println("Failed to upload photo:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload photo"})
+			utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 			return
 		}
-		fmt.Println("Photo uploaded successfully. URL:", photoURL)
-	} else {
-		fmt.Println("No photo uploaded.")
 	}
 
 	user, err := services.CreateUser(name, email, role, description, photoURL, password, urlInstagram, url_tikTok, urlFacebook, urlYoutube, phoneNumber, isPublished)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": user})
+	utils.RespondSuccess(c, gin.H{
+		"data": user,
+	})
 }

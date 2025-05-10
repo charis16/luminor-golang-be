@@ -10,14 +10,15 @@ import (
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie("access_token")
+
 		if err != nil || tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing access token cookie"})
+			utils.RespondError(c, http.StatusUnauthorized, "missing access token cookie")
 			return
 		}
 
 		_, claims, err := utils.ValidateAccessToken(tokenStr)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			utils.RespondError(c, http.StatusUnauthorized, "invalid or expired token")
 			return
 		}
 
@@ -33,7 +34,7 @@ func RequireRole(role string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userRole, exists := c.Get("role")
 		if !exists || userRole != role {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden: insufficient role"})
+			utils.RespondError(c, http.StatusForbidden, "forbidden: insufficient role")
 			return
 		}
 		c.Next()
