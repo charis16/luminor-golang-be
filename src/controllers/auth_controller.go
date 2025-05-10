@@ -14,20 +14,20 @@ func Login(c *gin.Context) {
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login payload"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid login payload"})
 		return
 	}
 
 	// Autentikasi lewat service
 	user, err := services.AuthenticateUser(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials"})
 		return
 	}
 
 	accessToken, refreshToken, err := services.Login(user.UUID, user.Role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate token"})
 		return
 	}
 
@@ -53,13 +53,13 @@ func Register(c *gin.Context) {
 func RefreshToken(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil || refreshToken == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing refresh token in cookie"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Missing refresh token in cookie"})
 		return
 	}
 
 	newAccessToken, err := services.RefreshToken(refreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid refresh token"})
 		return
 	}
 
@@ -81,13 +81,13 @@ func Logout(c *gin.Context) {
 func VerifyToken(c *gin.Context) {
 	token, err := c.Cookie("access_token")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Access token not found in cookie"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Access token not found in cookie"})
 		return
 	}
 
 	claims, err := services.VerifyAccessToken(token)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired token"})
 		return
 	}
 
