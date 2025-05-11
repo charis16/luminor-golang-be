@@ -23,6 +23,7 @@ type Album struct {
 	IsPublished bool      `gorm:"column:is_published" json:"is_published"`
 	CreatedAt   time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UserID      int32     `gorm:"column:user_id" json:"user_id"`
 }
 
 // TableName Album's table name

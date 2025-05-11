@@ -11,7 +11,7 @@ type UserResponse struct {
 	Role         string    `json:"role"`
 	PhoneNumber  string    `json:"phone_number"`
 	URLInstagram string    `json:"url_instagram"`
-	URLTiktok    string    `json:"url_tiktok"`
+	URLTikTok    string    `json:"url_tiktok"`
 	URLFacebook  string    `json:"url_facebook"`
 	URLYoutube   string    `json:"url_youtube"`
 	IsPublished  bool      `json:"is_published"`
