@@ -89,14 +89,19 @@ func CreateUser(input UserInput) (models.User, error) {
 		Email:        input.Email,
 		Role:         input.Role,
 		Description:  input.Description,
-		Photo:        input.PhotoURL,
-		Password:     utils.HashPassword(input.Password),
 		URLInstagram: input.URLInstagram,
 		URLTiktok:    input.URLTikTok,
 		URLFacebook:  input.URLFacebook,
 		URLYoutube:   input.URLYoutube,
 		PhoneNumber:  input.PhoneNumber,
 		IsPublished:  input.IsPublished == "true",
+	}
+
+	if input.Password != "" {
+		user.Password = utils.HashPassword(input.Password)
+	}
+	if input.PhotoURL != "" {
+		user.Photo = input.PhotoURL
 	}
 
 	tx := config.DB.Begin()

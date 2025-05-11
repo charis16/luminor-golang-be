@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -44,10 +45,15 @@ func GetUsers(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-
 	name := c.PostForm("name")
 	email := c.PostForm("email")
 	role := c.PostForm("role")
+
+	if name == "" || email == "" || role == "" {
+		utils.RespondError(c, http.StatusBadRequest, "name, email, and role are required")
+		return
+	}
+
 	description := c.PostForm("description")
 	password := c.PostForm("password")
 	urlInstagram := c.PostForm("url_instagram")
@@ -57,23 +63,18 @@ func CreateUser(c *gin.Context) {
 	phoneNumber := c.PostForm("phone_number")
 	isPublished := c.PostForm("is_published")
 
-	if name == "" || email == "" || role == "" {
-		utils.RespondError(c, http.StatusBadRequest, "name, email, and role are required")
-		return
-	}
-
 	var photoURL string
 
+	log.Printf("uploading file to minio")
 	fileHeader, err := c.FormFile("photo")
-	if err == nil {
-		file, err := fileHeader.Open()
-		if err != nil {
+	if err == nil && fileHeader != nil {
+		file, openErr := fileHeader.Open()
+		if openErr != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "failed to open uploaded file")
 			return
 		}
 		defer file.Close()
 
-		fmt.Println("Uploading photo to Minio...")
 		photoURL, err = utils.UploadToMinio("users", file, fileHeader)
 		if err != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
@@ -86,7 +87,6 @@ func CreateUser(c *gin.Context) {
 		Email:        email,
 		Role:         role,
 		Description:  description,
-		PhotoURL:     photoURL,
 		Password:     password,
 		URLInstagram: urlInstagram,
 		URLTikTok:    urlTikTok,
@@ -94,6 +94,7 @@ func CreateUser(c *gin.Context) {
 		URLYoutube:   urlYoutube,
 		PhoneNumber:  phoneNumber,
 		IsPublished:  isPublished,
+		PhotoURL:     photoURL,
 	}
 
 	user, err := services.CreateUser(input)
@@ -102,12 +103,15 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	utils.RespondSuccess(c, gin.H{
-		"data": user,
-	})
+	utils.RespondSuccess(c, gin.H{"data": user})
 }
 
 func EditUser(c *gin.Context) {
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "failed to parse multipart form: "+err.Error())
+		return
+	}
+
 	id := c.Param("uuid")
 	name := c.PostForm("name")
 	email := c.PostForm("email")
