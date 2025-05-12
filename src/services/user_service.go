@@ -215,6 +215,7 @@ func DeleteUser(uuid string) error {
 			}
 		}
 	}
+
 	// === Step 3: Delete albums from DB
 	if err := tx.Where("user_id = ?", user.ID).Delete(&models.Album{}).Error; err != nil {
 		tx.Rollback()

@@ -43,7 +43,7 @@ func AdminLogin(c *gin.Context) {
 }
 
 func AdminRefreshToken(c *gin.Context) {
-	refreshToken, err := c.Cookie("refresh_token")
+	refreshToken, err := c.Cookie("admin_refresh_token")
 
 	if err != nil || refreshToken == "" {
 		utils.RespondError(c, http.StatusUnauthorized, "Missing refresh token in cookie")
@@ -88,7 +88,7 @@ func AdminLogout(c *gin.Context) {
 }
 
 func AdminVerifyToken(c *gin.Context) {
-	token, err := c.Cookie("access_token")
+	token, err := c.Cookie("admin_access_token")
 	if err != nil {
 		utils.RespondError(c, http.StatusBadRequest, "Access token not found in cookie")
 		return

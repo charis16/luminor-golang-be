@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(rg *gin.RouterGroup) {
+func UserRoutes(rg *gin.RouterGroup) {
 	users := rg.Group("/users")
 	users.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{

@@ -32,10 +32,10 @@ func main() {
 
 	config.ConnectDB()
 	v1 := r.Group("/v1/api")
-	routes.RegisterUserRoutes(v1)
-	routes.RegisterAuthRoutes(v1)
+	routes.UserRoutes(v1)
+	routes.AuthRoutes(v1)
+	routes.CategoryRoutes(v1)
 
 	port := utils.GetEnvOrDefault("PORT", "8080")
-
 	r.Run(":" + port)
 }
