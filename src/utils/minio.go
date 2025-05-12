@@ -62,7 +62,12 @@ func UploadToMinio(bucketName string, file multipart.File, fileHeader *multipart
 
 	// 2. Clean file name
 	cleanFilename := strings.ReplaceAll(fileHeader.Filename, " ", "-")
-	objectName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), cleanFilename)
+
+	// 3. Add timestamp and unique suffix
+	now := time.Now()
+	timestamp := now.Format("20060102-150405")
+	uniqueSuffix := now.UnixNano()
+	objectName := fmt.Sprintf("%s_%d_%s", timestamp, uniqueSuffix, cleanFilename)
 
 	// 3. Log content type
 	contentType := fileHeader.Header.Get("Content-Type")
@@ -118,8 +123,17 @@ func StreamImageFromMinio(c *gin.Context, bucket, filename string, contentType s
 }
 
 func DeleteFromMinio(bucketName, objectName string) error {
-	err := MinioClient.RemoveObject(context.Background(), bucketName, GetObjectNameFromURL(objectName), minio.RemoveObjectOptions{})
+	objName := GetObjectNameFromURL(objectName)
+	err := MinioClient.RemoveObject(context.Background(), bucketName, objName, minio.RemoveObjectOptions{})
 	if err != nil {
+		// If it's a known error from MinIO
+		if minioErr, ok := err.(minio.ErrorResponse); ok {
+			if minioErr.Code == "NoSuchKey" {
+				// Silently skip missing file
+				return nil
+			}
+		}
+		// Any other error
 		return fmt.Errorf("failed to delete object: %w", err)
 	}
 	return nil

@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AuthenticateUser(email, password string) (*models.User, error) {
+func AuthenticateAdminUser(email, password string) (*models.User, error) {
 	var user models.User
 	if err := config.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, errors.New("user not found")
@@ -23,13 +23,13 @@ func AuthenticateUser(email, password string) (*models.User, error) {
 	return &user, nil
 }
 
-func Login(userID, role string) (string, string, error) {
-	accessToken, err := utils.GenerateAccessToken(userID, role)
+func Login(UUID, role string) (string, string, error) {
+	accessToken, err := utils.GenerateAccessToken(UUID, role)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateRefreshToken(userID, role)
+	refreshToken, err := utils.GenerateRefreshToken(UUID, role)
 	if err != nil {
 		return "", "", err
 	}

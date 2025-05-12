@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/charis16/luminor-golang-be/src/services"
 	"github.com/charis16/luminor-golang-be/src/utils"
@@ -62,10 +60,10 @@ func CreateUser(c *gin.Context) {
 	urlYoutube := c.PostForm("url_youtube")
 	phoneNumber := c.PostForm("phone_number")
 	isPublished := c.PostForm("is_published")
+	canLogin := c.PostForm("can_login")
 
 	var photoURL string
 
-	log.Printf("uploading file to minio")
 	fileHeader, err := c.FormFile("photo")
 	if err == nil && fileHeader != nil {
 		file, openErr := fileHeader.Open()
@@ -93,7 +91,8 @@ func CreateUser(c *gin.Context) {
 		URLFacebook:  urlFacebook,
 		URLYoutube:   urlYoutube,
 		PhoneNumber:  phoneNumber,
-		IsPublished:  isPublished,
+		IsPublished:  isPublished == "true",
+		CanLogin:     canLogin == "true",
 		PhotoURL:     photoURL,
 	}
 
@@ -107,11 +106,6 @@ func CreateUser(c *gin.Context) {
 }
 
 func EditUser(c *gin.Context) {
-	if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
-		utils.RespondError(c, http.StatusBadRequest, "failed to parse multipart form: "+err.Error())
-		return
-	}
-
 	id := c.Param("uuid")
 	name := c.PostForm("name")
 	email := c.PostForm("email")
@@ -124,6 +118,7 @@ func EditUser(c *gin.Context) {
 	urlYoutube := c.PostForm("url_youtube")
 	phoneNumber := c.PostForm("phone_number")
 	isPublished := c.PostForm("is_published")
+	canLogin := c.PostForm("can_login")
 
 	user, err := services.GetUserByUUID(id)
 	if err != nil {
@@ -177,7 +172,8 @@ func EditUser(c *gin.Context) {
 		URLFacebook:  urlFacebook,
 		URLYoutube:   urlYoutube,
 		PhoneNumber:  phoneNumber,
-		IsPublished:  isPublished,
+		IsPublished:  isPublished == "true",
+		CanLogin:     canLogin == "true",
 	}
 
 	user, err = services.UpdateUser(id, input)
@@ -242,12 +238,39 @@ func GetUserByUUID(c *gin.Context) {
 			"url_facebook":  user.URLFacebook,
 			"url_youtube":   user.URLYoutube,
 			"is_published":  user.IsPublished,
-			"photo_url":     user.Photo, // final accessible URL
+			"can_login": func() interface{} {
+				if user.Password == "" {
+					return false
+				} else {
+					return true
+				}
+			}(), // final accessible URL
+			"photo_url": func() interface{} {
+				if user.Photo == "" {
+					return nil
+				} else {
+					return user.Photo
+				}
+			}(), // final accessible URL
 		},
 	})
 }
 
-func ProxyUserImage(c *gin.Context) {
-	filename := c.Query("filename")
-	utils.StreamImageFromMinio(c, "users", filename, "image/*", 5*time.Minute)
+func DeleteImageUser(c *gin.Context) {
+	id := c.Param("uuid")
+
+	if id == "" {
+		utils.RespondError(c, http.StatusBadRequest, "id is required")
+		return
+	}
+
+	err := services.DeleteImageUser(id)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"message": "image user deleted successfully",
+	})
 }

@@ -8,12 +8,12 @@ import (
 func RegisterAuthRoutes(rg *gin.RouterGroup) {
 	auth := rg.Group("/auth")
 	{
-		auth.POST("/login", controllers.Login)
-		auth.POST("/register", controllers.Register)
-		auth.POST("/refresh-token", controllers.RefreshToken)
-		auth.POST("/logout", controllers.Logout)
-		auth.POST("/verify-token", controllers.VerifyToken)
+		auth.POST("/admin-login", controllers.AdminLogin)
+
+		auth.POST("/admin-refresh-token", controllers.AdminRefreshToken)
+		auth.POST("/admin-logout", controllers.AdminLogout)
+		auth.POST("/admin-verify-token", controllers.AdminVerifyToken)
 		auth.POST("/forgot-password", controllers.ForgotPassword)
-		auth.POST("/reset-password", controllers.ResetPassword)
+		auth.POST("/admin-reset-password", controllers.AdminResetPassword)
 	}
 }

@@ -1,15 +1,17 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"net/url"
 
+	"github.com/charis16/luminor-golang-be/src/models"
 	"github.com/charis16/luminor-golang-be/src/services"
 	"github.com/charis16/luminor-golang-be/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
-func Login(c *gin.Context) {
+func AdminLogin(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -20,7 +22,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Autentikasi lewat service
-	user, err := services.AuthenticateUser(req.Email, req.Password)
+	user, err := services.AuthenticateAdminUser(req.Email, req.Password)
 	if err != nil {
 		utils.RespondError(c, http.StatusUnauthorized, "Invalid credentials")
 		return
@@ -32,29 +34,24 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	setTokenCookies(c, accessToken, refreshToken)
+	AdminSetTokenCookies(c, accessToken, refreshToken, user)
 
 	utils.RespondSuccess(c, gin.H{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-		"user": gin.H{
-			"id":    user.UUID,
-			"name":  user.Name,
-			"email": user.Email,
-			"role":  user.Role,
-		},
+		"admin_access_token":  accessToken,
+		"admin_refresh_token": refreshToken,
 	})
 }
 
-func Register(c *gin.Context) {
-	// TODO: implementasi pendaftaran user baru
-	utils.RespondError(c, http.StatusNotImplemented, "Register not implemented")
-}
-
-func RefreshToken(c *gin.Context) {
+func AdminRefreshToken(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
-	fmt.Println("Refresh token:", refreshToken)
+
 	if err != nil || refreshToken == "" {
+		utils.RespondError(c, http.StatusUnauthorized, "Missing refresh token in cookie")
+		return
+	}
+
+	_, claims, err := utils.ValidateRefreshToken(refreshToken)
+	if err != nil {
 		utils.RespondError(c, http.StatusUnauthorized, "Missing refresh token in cookie")
 		return
 	}
@@ -65,18 +62,24 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	setTokenCookies(c, newAccessToken, refreshToken)
+	user, err := services.GetUserByUUID(claims.UserID)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get user")
+		return
+	}
+
+	AdminSetTokenCookies(c, newAccessToken, refreshToken, &user)
 
 	utils.RespondSuccess(c, gin.H{
-		"access_token":  newAccessToken,
-		"refresh_token": refreshToken,
+		"admin_access_token":  newAccessToken,
+		"admin_refresh_token": refreshToken,
 	})
-
 }
 
-func Logout(c *gin.Context) {
-	c.SetCookie("access_token", "", -1, "/", "", false, true)
-	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+func AdminLogout(c *gin.Context) {
+	c.SetCookie("admin_access_token", "", -1, "/", "", false, true)
+	c.SetCookie("admin_refresh_token", "", -1, "/", "", false, true)
+	c.SetCookie("admin_user", "", -1, "/", "", false, true)
 
 	utils.RespondSuccess(c, gin.H{
 		"message": "Logged out successfully",
@@ -84,7 +87,7 @@ func Logout(c *gin.Context) {
 
 }
 
-func VerifyToken(c *gin.Context) {
+func AdminVerifyToken(c *gin.Context) {
 	token, err := c.Cookie("access_token")
 	if err != nil {
 		utils.RespondError(c, http.StatusBadRequest, "Access token not found in cookie")
@@ -111,12 +114,12 @@ func ForgotPassword(c *gin.Context) {
 	utils.RespondError(c, http.StatusNotImplemented, "Forgot password not implemented")
 }
 
-func ResetPassword(c *gin.Context) {
+func AdminResetPassword(c *gin.Context) {
 	// TODO: implementasi set password baru (dengan token reset)
 	utils.RespondError(c, http.StatusNotImplemented, "Reset password not implemented")
 }
 
-func setTokenCookies(c *gin.Context, accessToken string, refreshToken string) {
+func AdminSetTokenCookies(c *gin.Context, accessToken string, refreshToken string, user *models.User) {
 	accessTokenAge := utils.GetEnvAsDurationInSeconds("JWT_EXPIRATION", "15m")
 	refreshTokenAge := utils.GetEnvAsDurationInSeconds("JWT_REFRESH_EXPIRATION", "7d")
 
@@ -127,7 +130,7 @@ func setTokenCookies(c *gin.Context, accessToken string, refreshToken string) {
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "access_token",
+		Name:     "admin_access_token",
 		Value:    accessToken,
 		Path:     "/",
 		HttpOnly: true,
@@ -137,11 +140,27 @@ func setTokenCookies(c *gin.Context, accessToken string, refreshToken string) {
 	})
 
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "refresh_token",
+		Name:     "admin_refresh_token",
 		Value:    refreshToken,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   secure,
+		SameSite: sameSite,
+		MaxAge:   refreshTokenAge,
+	})
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to serialize user data")
+		return
+	}
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "admin_user",
+		Value:    url.QueryEscape(string(userJSON)),
+		Path:     "/",
+		HttpOnly: false,
+		Secure:   false,
 		SameSite: sameSite,
 		MaxAge:   refreshTokenAge,
 	})

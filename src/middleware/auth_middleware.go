@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RequireAuth() gin.HandlerFunc {
+func AdminRequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie("access_token")
+		tokenStr, err := c.Cookie("admin_access_token")
 
 		if err != nil || tokenStr == "" {
 			utils.RespondError(c, http.StatusUnauthorized, "missing access token cookie")

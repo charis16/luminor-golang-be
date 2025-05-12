@@ -16,12 +16,12 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userID, role string) (string, error) {
-	return generateToken(userID, role, getAccessSecret(), getAccessDuration())
+func GenerateAccessToken(UUID, role string) (string, error) {
+	return generateToken(UUID, role, getAccessSecret(), getAccessDuration())
 }
 
-func GenerateRefreshToken(userID, role string) (string, error) {
-	return generateToken(userID, role, getRefreshSecret(), getRefreshDuration())
+func GenerateRefreshToken(UUID, role string) (string, error) {
+	return generateToken(UUID, role, getRefreshSecret(), getRefreshDuration())
 }
 
 func ValidateAccessToken(tokenStr string) (*jwt.Token, *CustomClaims, error) {
@@ -32,9 +32,9 @@ func ValidateRefreshToken(tokenStr string) (*jwt.Token, *CustomClaims, error) {
 	return validateToken(tokenStr, getRefreshSecret())
 }
 
-func generateToken(userID, role string, secret []byte, duration time.Duration) (string, error) {
+func generateToken(UUID, role string, secret []byte, duration time.Duration) (string, error) {
 	claims := CustomClaims{
-		UserID: userID,
+		UserID: UUID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),

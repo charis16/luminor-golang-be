@@ -22,7 +22,8 @@ type UserInput struct {
 	URLFacebook  string
 	URLYoutube   string
 	PhoneNumber  string
-	IsPublished  string // tetap string kalau dari form
+	CanLogin     bool
+	IsPublished  bool // tetap string kalau dari form
 }
 
 func GetAllUsers(page int, limit int, search string) ([]dto.UserResponse, int64, error) {
@@ -94,7 +95,7 @@ func CreateUser(input UserInput) (models.User, error) {
 		URLFacebook:  input.URLFacebook,
 		URLYoutube:   input.URLYoutube,
 		PhoneNumber:  input.PhoneNumber,
-		IsPublished:  input.IsPublished == "true",
+		IsPublished:  input.IsPublished,
 	}
 
 	if input.Password != "" {
@@ -141,15 +142,19 @@ func UpdateUser(uuid string, input UserInput) (models.User, error) {
 	user.Role = input.Role
 	user.Description = input.Description
 	user.Photo = input.PhotoURL
-	if input.Password != "" {
+	if input.Password != "" && input.CanLogin {
 		user.Password = utils.HashPassword(input.Password)
+	}
+
+	if !input.CanLogin {
+		user.Password = ""
 	}
 	user.URLInstagram = input.URLInstagram
 	user.URLTiktok = input.URLTikTok
 	user.URLFacebook = input.URLFacebook
 	user.URLYoutube = input.URLYoutube
 	user.PhoneNumber = input.PhoneNumber
-	user.IsPublished = input.IsPublished == "true"
+	user.IsPublished = input.IsPublished
 
 	// Simpan perubahan
 	if err := tx.Save(&user).Error; err != nil {
@@ -223,6 +228,39 @@ func DeleteUser(uuid string) error {
 	}
 
 	// === Step 5: Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	return nil
+}
+
+func DeleteImageUser(uuid string) error {
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %v", tx.Error)
+	}
+
+	var user models.User
+	if err := tx.Where("uuid = ?", uuid).First(&user).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to get user: %v", err)
+	}
+
+	if user.Photo != "" {
+		if err := utils.DeleteFromMinio("users", user.Photo); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to delete user photo: %v", err)
+		}
+	}
+
+	if err := tx.Model(&user).Updates(map[string]interface{}{
+		"photo": nil,
+	}).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update user photo: %v", err)
+	}
+
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
