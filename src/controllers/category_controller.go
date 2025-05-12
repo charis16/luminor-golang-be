@@ -76,29 +76,24 @@ func EditCategory(c *gin.Context) {
 		return
 	}
 
-	// Bind input form ke struct
 	var input services.CategoryInput
-	if err := c.ShouldBind(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.RespondError(c, http.StatusBadRequest, "Invalid input format")
 		return
 	}
 
-	// Validasi input
 	if err := validate.Struct(&input); err != nil {
 		utils.RespondError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Update ke DB
 	updatedCategory, err := services.UpdateCategory(id, input)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.RespondSuccess(c, gin.H{
-		"data": updatedCategory,
-	})
+	utils.RespondSuccess(c, gin.H{"data": updatedCategory})
 }
 
 func DeleteCategory(c *gin.Context) {

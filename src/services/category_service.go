@@ -13,7 +13,7 @@ import (
 
 type CategoryInput struct {
 	Name        string `form:"name" validate:"required"`
-	IsPublished bool   `form:"is_published"`
+	IsPublished bool   `json:"is_published" validate:"required"`
 }
 
 func GetAllCategories(page int, limit int, search string) ([]dto.CategoryResponse, int64, error) {
@@ -34,7 +34,7 @@ func GetAllCategories(page int, limit int, search string) ([]dto.CategoryRespons
 
 	offset := (page - 1) * limit
 	if err := query.
-		Select("uuid", "name", "is_published", "created_at", "updated_at", "role").
+		Select("uuid", "name", "is_published", "created_at", "updated_at").
 		Limit(limit).
 		Offset(offset).
 		Find(&categories).Error; err != nil {
