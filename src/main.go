@@ -34,6 +34,7 @@ func main() {
 	v1 := r.Group("/v1/api")
 	routes.UserRoutes(v1)
 	routes.AuthRoutes(v1)
+	routes.FaqRoutes(v1)
 	routes.CategoryRoutes(v1)
 
 	port := utils.GetEnvOrDefault("PORT", "8080")
