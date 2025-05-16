@@ -32,6 +32,8 @@ type Website struct {
 	OgImage            string    `gorm:"column:og_image" json:"og_image"`
 	CreatedAt          time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt          time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UUID               string    `gorm:"column:uuid" json:"uuid"`
+	URLTiktok          string    `gorm:"column:url_tiktok" json:"url_tiktok"`
 }
 
 // TableName Website's table name

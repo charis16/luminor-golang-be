@@ -1,5 +1,6 @@
 CREATE TABLE websites (
     id SERIAL PRIMARY KEY,
+     uuid UUID UNIQUE DEFAULT gen_random_uuid(),
     about_us_brief_home_en TEXT,
     about_us_en TEXT,
     about_us_id TEXT,
@@ -11,6 +12,7 @@ CREATE TABLE websites (
     email VARCHAR(50),
     url_instagram VARCHAR(50),
     url_facebook VARCHAR(50),
+    url_tiktok VARCHAR(50),
     video_web VARCHAR(255),
     video_mobile VARCHAR(255),
     meta_title VARCHAR(255),
