@@ -9,7 +9,7 @@ import (
 func WebsiteRoutes(rg *gin.RouterGroup) {
 	websites := rg.Group("/websites")
 
-	websites.GET("/", controllers.GetUsers)
+	websites.GET("/", controllers.GetWebsite)
 
 	// Route yang butuh admin
 	adminOnly := websites.Group("/")
@@ -18,7 +18,7 @@ func WebsiteRoutes(rg *gin.RouterGroup) {
 		middleware.RequireRole("admin"),
 	)
 	{
-		adminOnly.POST("/submit", controllers.CreateUser)
-		adminOnly.PUT("/:uuid", controllers.EditUser)
+		adminOnly.POST("/submit", controllers.CreateWebsiteInformation)
+		adminOnly.PUT("/:uuid", controllers.EditWebsiteInformation)
 	}
 }

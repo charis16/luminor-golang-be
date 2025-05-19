@@ -9,54 +9,52 @@ import (
 )
 
 type WebsiteInput struct {
-	Address            string `json:"address"`
-	PhoneNumber        string `json:"phone_number"`
-	Latitude           string `json:"latitude"`
-	Longitude          string `json:"longitude"`
-	Email              string `json:"email"`
-	UrlInstagram       string `json:"url_instagram"`
-	UrlTikTok          string `json:"url_tiktok"`
-	AboutUsBriefHomeEn string `json:"about_us_brief_home_en"`
-	AboutUsEn          string `json:"about_us_en"`
-	AboutUsID          string `json:"about_us_id"`
-	AboutUsBriefHomeID string `json:"about_us_brief_home_id"`
-	VideoWeb           string `json:"video_web"`
-	VideoMobile        string `json:"video_mobile"`
-	MetaTitle          string `json:"meta_title"`
-	MetaDesc           string `json:"meta_desc"`
-	MetaKeyword        string `json:"meta_keyword"`
-	OgImage            string `json:"og_image"`
+	Address            string `json:"address,omitempty"`
+	PhoneNumber        string `json:"phone_number,omitempty"`
+	Latitude           string `json:"latitude,omitempty"`
+	Longitude          string `json:"longitude,omitempty"`
+	Email              string `json:"email,omitempty"`
+	UrlInstagram       string `json:"url_instagram,omitempty"`
+	UrlTikTok          string `json:"url_tiktok,omitempty"`
+	AboutUsBriefHomeEn string `json:"about_us_brief_home_en,omitempty"`
+	AboutUsEn          string `json:"about_us_en,omitempty"`
+	AboutUsID          string `json:"about_us_id,omitempty"`
+	AboutUsBriefHomeID string `json:"about_us_brief_home_id,omitempty"`
+	VideoWeb           string `json:"video_web,omitempty"`
+	VideoMobile        string `json:"video_mobile,omitempty"`
+	MetaTitle          string `json:"meta_title,omitempty"`
+	MetaDesc           string `json:"meta_desc,omitempty"`
+	MetaKeyword        string `json:"meta_keyword,omitempty"`
+	OgImage            string `json:"og_image,omitempty"`
 }
 
-func GetWebsite() ([]dto.WebsiteResponse, int64, error) {
+func GetWebsite() (dto.WebsiteResponse, int64, error) {
 	var website models.Website
 	if err := config.DB.First(&website).Error; err != nil {
-		return nil, 0, err
+		return dto.WebsiteResponse{}, 0, err
 	}
 
-	response := []dto.WebsiteResponse{
-		{
-			UUID:               website.UUID,
-			AboutUsBriefHomeEn: website.AboutUsBriefHomeEn,
-			AboutUsEn:          website.AboutUsEn,
-			AboutUsID:          website.AboutUsID,
-			AboutUsBriefHomeID: website.AboutUsBriefHomeID,
-			VideoWeb:           website.VideoWeb,
-			VideoMobile:        website.VideoMobile,
-			MetaTitle:          website.MetaTitle,
-			MetaDesc:           website.MetaDesc,
-			MetaKeyword:        website.MetaKeyword,
-			OgImage:            website.OgImage,
-			Address:            website.Address,
-			PhoneNumber:        website.PhoneNumber,
-			Latitude:           website.Latitude,
-			Longitude:          website.Longitude,
-			Email:              website.Email,
-			UrlInstagram:       website.URLInstagram,
-			UrlTikTok:          website.URLFacebook,
-			CreatedAt:          website.CreatedAt,
-			UpdatedAt:          website.UpdatedAt,
-		},
+	response := dto.WebsiteResponse{
+		UUID:               website.UUID,
+		AboutUsBriefHomeEn: website.AboutUsBriefHomeEn,
+		AboutUsEn:          website.AboutUsEn,
+		AboutUsID:          website.AboutUsID,
+		AboutUsBriefHomeID: website.AboutUsBriefHomeID,
+		VideoWeb:           website.VideoWeb,
+		VideoMobile:        website.VideoMobile,
+		MetaTitle:          website.MetaTitle,
+		MetaDesc:           website.MetaDesc,
+		MetaKeyword:        website.MetaKeyword,
+		OgImage:            website.OgImage,
+		Address:            website.Address,
+		PhoneNumber:        website.PhoneNumber,
+		Latitude:           website.Latitude,
+		Longitude:          website.Longitude,
+		Email:              website.Email,
+		UrlInstagram:       website.URLInstagram,
+		UrlTikTok:          website.URLFacebook,
+		CreatedAt:          website.CreatedAt,
+		UpdatedAt:          website.UpdatedAt,
 	}
 
 	return response, 1, nil
@@ -204,5 +202,13 @@ func EditWebsiteInformation(uuid string, input WebsiteInput) (models.Website, er
 		return models.Website{}, err
 	}
 
+	return website, nil
+}
+
+func GetWebsiteByUUID(uuid string) (models.Website, error) {
+	var website models.Website
+	if err := config.DB.Where("uuid = ?", uuid).First(&website).Error; err != nil {
+		return models.Website{}, err
+	}
 	return website, nil
 }

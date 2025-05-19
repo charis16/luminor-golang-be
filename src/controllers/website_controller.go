@@ -9,10 +9,11 @@ import (
 )
 
 func GetWebsite(c *gin.Context) {
-
 	website, _, err := services.GetWebsite()
 	if err != nil {
-		utils.RespondError(c, http.StatusInternalServerError, "failed to get website")
+		utils.RespondSuccess(c, gin.H{
+			"data": nil,
+		})
 		return
 	}
 
@@ -21,19 +22,53 @@ func GetWebsite(c *gin.Context) {
 	})
 
 }
-
 func CreateWebsiteInformation(c *gin.Context) {
 	var input services.WebsiteInput
 
-	if err := c.ShouldBind(&input); err != nil {
-		utils.RespondError(c, http.StatusBadRequest, "Invalid input format")
-		return
-	}
+	contentType := c.GetHeader("Content-Type")
+	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		metaTitle := c.PostForm("meta_title")
+		metaKeywords := c.PostForm("meta_keywords")
+		metaDescription := c.PostForm("meta_description")
 
-	if err := validate.Struct(&input); err != nil {
-		// Bisa custom format error jika mau
-		utils.RespondError(c, http.StatusBadRequest, err.Error())
-		return
+		var ogImage string
+
+		fileHeader, err := c.FormFile("ogImage")
+		if err == nil && fileHeader != nil {
+			file, openErr := fileHeader.Open()
+			if openErr != nil {
+				utils.RespondError(c, http.StatusInternalServerError, "failed to open uploaded file")
+				return
+			}
+			defer file.Close()
+
+			ogImage, err = utils.UploadToMinio("websites", file, fileHeader)
+			if err != nil {
+				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
+				return
+			}
+		}
+
+		input := services.WebsiteInput{}
+
+		if metaTitle != "" {
+			input.MetaTitle = metaTitle
+		}
+		if metaKeywords != "" {
+			input.MetaKeyword = metaKeywords
+		}
+		if metaDescription != "" {
+			input.MetaDesc = metaDescription
+		}
+		if ogImage != "" {
+			input.OgImage = ogImage
+		}
+
+	} else {
+		if err := c.ShouldBindJSON(&input); err != nil {
+			utils.RespondError(c, http.StatusBadRequest, "Invalid input format: "+err.Error())
+			return
+		}
 	}
 
 	faq, err := services.CreateWebsiteInformation(input)
@@ -47,22 +82,58 @@ func CreateWebsiteInformation(c *gin.Context) {
 
 func EditWebsiteInformation(c *gin.Context) {
 	id := c.Param("uuid")
-
-	_, err := services.GetFaqByUUID(id)
-	if err != nil {
-		utils.RespondError(c, http.StatusInternalServerError, "failed to get faq")
-		return
-	}
-
 	var input services.WebsiteInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		utils.RespondError(c, http.StatusBadRequest, "Invalid input format")
+
+	_, err := services.GetWebsiteByUUID(id)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get website information")
 		return
 	}
 
-	if err := validate.Struct(&input); err != nil {
-		utils.RespondError(c, http.StatusBadRequest, err.Error())
-		return
+	contentType := c.GetHeader("Content-Type")
+	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		metaTitle := c.PostForm("meta_title")
+		metaKeywords := c.PostForm("meta_keywords")
+		metaDescription := c.PostForm("meta_description")
+
+		var ogImage string
+
+		fileHeader, err := c.FormFile("ogImage")
+		if err == nil && fileHeader != nil {
+			file, openErr := fileHeader.Open()
+			if openErr != nil {
+				utils.RespondError(c, http.StatusInternalServerError, "failed to open uploaded file")
+				return
+			}
+			defer file.Close()
+
+			ogImage, err = utils.UploadToMinio("websites", file, fileHeader)
+			if err != nil {
+				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
+				return
+			}
+		}
+
+		input := services.WebsiteInput{}
+
+		if metaTitle != "" {
+			input.MetaTitle = metaTitle
+		}
+		if metaKeywords != "" {
+			input.MetaKeyword = metaKeywords
+		}
+		if metaDescription != "" {
+			input.MetaDesc = metaDescription
+		}
+		if ogImage != "" {
+			input.OgImage = ogImage
+		}
+
+	} else {
+		if err := c.ShouldBindJSON(&input); err != nil {
+			utils.RespondError(c, http.StatusBadRequest, "Invalid input format: "+err.Error())
+			return
+		}
 	}
 
 	updatedFaq, err := services.EditWebsiteInformation(id, input)

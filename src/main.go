@@ -36,6 +36,7 @@ func main() {
 	routes.AuthRoutes(v1)
 	routes.FaqRoutes(v1)
 	routes.CategoryRoutes(v1)
+	routes.WebsiteRoutes(v1)
 
 	port := utils.GetEnvOrDefault("PORT", "8080")
 	r.Run(":" + port)
