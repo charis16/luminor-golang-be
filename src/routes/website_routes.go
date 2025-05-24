@@ -20,5 +20,6 @@ func WebsiteRoutes(rg *gin.RouterGroup) {
 	{
 		adminOnly.POST("/submit", controllers.CreateWebsiteInformation)
 		adminOnly.PUT("/:uuid", controllers.EditWebsiteInformation)
+		adminOnly.PATCH("/:status/:uuid", controllers.DeleteWebsiteInformation)
 	}
 }

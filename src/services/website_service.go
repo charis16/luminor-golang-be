@@ -1,11 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/charis16/luminor-golang-be/src/config"
 	"github.com/charis16/luminor-golang-be/src/dto"
 	"github.com/charis16/luminor-golang-be/src/models"
+	"github.com/charis16/luminor-golang-be/src/utils"
 )
 
 type WebsiteInput struct {
@@ -211,4 +213,42 @@ func GetWebsiteByUUID(uuid string) (models.Website, error) {
 		return models.Website{}, err
 	}
 	return website, nil
+}
+
+func DeleteWebsiteInformation(data models.Website, status string) error {
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %v", tx.Error)
+	}
+
+	if status == "video_web" {
+		if err := utils.DeleteFromMinio("websites", data.VideoWeb); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to delete websites video_web photo: %v", err)
+		}
+
+		data.VideoWeb = ""
+	} else if status == "video_mobile" {
+		if err := utils.DeleteFromMinio("websites", data.VideoMobile); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to delete websites video_mobile photo: %v", err)
+		}
+		data.VideoMobile = ""
+	} else if status == "og_image" {
+		if err := utils.DeleteFromMinio("websites", data.OgImage); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to delete websites og_image photo: %v", err)
+		}
+		data.OgImage = ""
+	}
+
+	if err := tx.Save(&data).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update website information: %v", err)
+	}
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	return nil
 }

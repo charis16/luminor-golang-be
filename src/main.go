@@ -23,7 +23,7 @@ func main() {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://192.168.1.16:3000"}, // frontend kamu
+		AllowOrigins:     []string{"https://localhost:3000"}, // frontend kamu
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Set-Cookie"},
@@ -37,7 +37,14 @@ func main() {
 	routes.FaqRoutes(v1)
 	routes.CategoryRoutes(v1)
 	routes.WebsiteRoutes(v1)
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "pong"})
+	})
 
 	port := utils.GetEnvOrDefault("PORT", "8080")
-	r.Run(":" + port)
+	// r.Run(":" + port)
+	err = r.RunTLS(":"+port, "../../certs/localhost.pem", "../../certs/localhost-key.pem")
+	if err != nil {
+		log.Fatal("RunTLS failed:", err)
+	}
 }

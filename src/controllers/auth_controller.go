@@ -160,7 +160,7 @@ func AdminSetTokenCookies(c *gin.Context, accessToken string, refreshToken strin
 		Value:    url.QueryEscape(string(userJSON)),
 		Path:     "/",
 		HttpOnly: false,
-		Secure:   false,
+		Secure:   secure,
 		SameSite: sameSite,
 		MaxAge:   refreshTokenAge,
 	})
