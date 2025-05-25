@@ -144,3 +144,15 @@ func GetCategoryByUUID(c *gin.Context) {
 		},
 	})
 }
+
+func GetCategoryOptions(c *gin.Context) {
+	options, err := services.GetCategoryOptions()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get category options")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": options,
+	})
+}

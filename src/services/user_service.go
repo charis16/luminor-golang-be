@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/charis16/luminor-golang-be/src/config"
@@ -11,9 +10,9 @@ import (
 )
 
 type UserInput struct {
-	Name         string
-	Email        string
-	Role         string
+	Name         string `form:"name" binding:"required"`
+	Email        string `form:"email" binding:"required,email"`
+	Role         string `form:"role" binding:"required"`
 	Description  string
 	PhotoURL     string
 	Password     string
@@ -198,12 +197,8 @@ func DeleteUser(uuid string) error {
 
 	for _, album := range albums {
 		var images []string
-		if album.Images != "" {
-			err := json.Unmarshal([]byte(album.Images), &images)
-			if err != nil {
-				tx.Rollback()
-				return fmt.Errorf("failed to parse album images: %v", err)
-			}
+		if len(album.Images) > 0 {
+			images = album.Images
 
 			for _, image := range images {
 				if image != "" {
@@ -267,4 +262,26 @@ func DeleteImageUser(uuid string) error {
 	}
 
 	return nil
+}
+
+func GetUserOptions() ([]dto.UserOption, error) {
+	var users []models.User
+	if err := config.DB.
+		Select("uuid, name").
+		Where("is_published = ?", true).
+		Where("role != ?", "admin").
+		Order("created_at DESC").
+		Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user options: %v", err)
+	}
+
+	response := make([]dto.UserOption, len(users))
+	for i, user := range users {
+		response[i] = dto.UserOption{
+			UUID: user.UUID,
+			Name: user.Name,
+		}
+	}
+
+	return response, nil
 }

@@ -274,3 +274,15 @@ func DeleteImageUser(c *gin.Context) {
 		"message": "image user deleted successfully",
 	})
 }
+
+func GetUserOptions(c *gin.Context) {
+	options, err := services.GetUserOptions()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get user options")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": options,
+	})
+}

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -132,12 +131,8 @@ func DeleteCategory(uuid string) error {
 
 	for _, album := range albums {
 		var images []string
-		if album.Images != "" {
-			err := json.Unmarshal([]byte(album.Images), &images)
-			if err != nil {
-				tx.Rollback()
-				return fmt.Errorf("failed to parse album images: %v", err)
-			}
+		if len(album.Images) > 0 {
+			images = album.Images
 
 			for _, image := range images {
 				if image != "" {
@@ -168,4 +163,24 @@ func DeleteCategory(uuid string) error {
 	}
 
 	return nil
+}
+
+func GetCategoryOptions() ([]dto.CategoryOption, error) {
+	var categories []models.Category
+	if err := config.DB.Select("uuid, name").
+		Where("is_published = ?", true).
+		Order("name ASC").
+		Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	options := make([]dto.CategoryOption, len(categories))
+	for i, category := range categories {
+		options[i] = dto.CategoryOption{
+			UUID: category.UUID,
+			Name: category.Name,
+		}
+	}
+
+	return options, nil
 }

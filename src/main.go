@@ -37,6 +37,8 @@ func main() {
 	routes.FaqRoutes(v1)
 	routes.CategoryRoutes(v1)
 	routes.WebsiteRoutes(v1)
+	routes.AlbumRoutes(v1)
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
