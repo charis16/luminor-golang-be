@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/charis16/luminor-golang-be/src/services"
 	"github.com/charis16/luminor-golang-be/src/utils"
@@ -128,6 +129,8 @@ func EditAlbum(c *gin.Context) {
 	input.Description = c.PostForm("description")
 	input.UserID = c.PostForm("user_id")
 	input.IsPublished = c.PostForm("is_published")
+	var thumbnailUrl = c.PostForm("thumbnail_url")
+	var mediaUrl = c.PostForm("media_url")
 
 	// Ambil file-file jika ada
 	form, err := c.MultipartForm()
@@ -137,17 +140,32 @@ func EditAlbum(c *gin.Context) {
 	}
 
 	var imageUrls []string
+	// Ambil URL dari mediaUrl (string comma-separated)
+	if mediaUrl != "" {
+		urls := strings.Split(mediaUrl, ",")
+		for _, url := range urls {
+			trimmed := strings.TrimSpace(url)
+			if trimmed != "" {
+				imageUrls = append(imageUrls, trimmed)
+			}
+		}
+	}
+
+	// Ambil file dari form dan upload
 	if form != nil && form.File != nil {
 		files := form.File["images"]
+
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "Failed to open uploaded file")
 				return
 			}
-			defer file.Close()
 
+			// Upload langsung, lalu close
 			url, err := utils.UploadToMinio("albums", file, fileHeader)
+			file.Close() // pastikan selalu ditutup meskipun upload gagal
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "Failed to upload image")
 				return
@@ -156,6 +174,8 @@ func EditAlbum(c *gin.Context) {
 			imageUrls = append(imageUrls, url)
 		}
 	}
+
+	// Set hasil akhir ke input.Images
 	input.Images = imageUrls
 
 	if fileHeader, err := c.FormFile("thumbnail"); err == nil && fileHeader != nil {
@@ -172,6 +192,10 @@ func EditAlbum(c *gin.Context) {
 			return
 		}
 		input.Thumbnail = url
+	}
+
+	if thumbnailUrl != "" {
+		input.Thumbnail = thumbnailUrl
 	}
 
 	// Validasi input

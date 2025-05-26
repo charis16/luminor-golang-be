@@ -184,10 +184,19 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 			}
 		}
 		combinedImages := append(filteredOldImages, input.Images...)
-		album.Images = combinedImages
+		// Remove duplicate URLs
+		uniqueImagesMap := make(map[string]struct{})
+		var uniqueImages []string
+		for _, img := range combinedImages {
+			if _, exists := uniqueImagesMap[img]; !exists && img != "" {
+				uniqueImagesMap[img] = struct{}{}
+				uniqueImages = append(uniqueImages, img)
+			}
+		}
+		album.Images = uniqueImages
 	}
 
-	if input.Thumbnail != "" {
+	if input.Thumbnail != "" && input.Thumbnail != "undefined" {
 		album.Thumbnail = input.Thumbnail
 	}
 
@@ -255,11 +264,11 @@ func DeleteImageFromAlbum(uuid string, imageURL string) error {
 	// Trim input
 	imageURL = strings.Trim(imageURL, `"`)
 
-	// Ambil nama file dari URL untuk delete dari Minio
+	// Ambil nama file dari URL
 	parts := strings.Split(imageURL, "/")
 	imageFilename := parts[len(parts)-1]
 
-	// Delete from Minio
+	// Hapus dari MinIO
 	if imageFilename != "" {
 		if err := utils.DeleteFromMinio("albums", imageFilename); err != nil {
 			tx.Rollback()
@@ -267,16 +276,21 @@ func DeleteImageFromAlbum(uuid string, imageURL string) error {
 		}
 	}
 
-	// Filter out URL yang dihapus
-	var updatedImages []string
-	for _, img := range album.Images {
-		if img != imageURL { // URL match
-			updatedImages = append(updatedImages, img)
+	// Cek apakah imageURL adalah thumbnail
+	if album.Thumbnail == imageURL {
+		album.Thumbnail = ""
+	} else {
+		// Kalau bukan thumbnail, hapus dari album.Images
+		var updatedImages []string
+		for _, img := range album.Images {
+			if img != imageURL {
+				updatedImages = append(updatedImages, img)
+			}
 		}
+		album.Images = updatedImages
 	}
 
-	// Update album
-	album.Images = updatedImages
+	// Simpan perubahan
 	if err := tx.Save(&album).Error; err != nil {
 		tx.Rollback()
 		return err
