@@ -7,13 +7,14 @@ import (
 )
 
 func AlbumRoutes(rg *gin.RouterGroup) {
-	faq := rg.Group("/albums")
-	faq.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
+	albums := rg.Group("/albums")
+	albums.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{
-		faq.GET("/lists", controllers.GetAlbums)
-		faq.GET("/:uuid", controllers.GetAlbumByUUID)
-		faq.PUT("/:uuid", controllers.EditAlbum)
-		faq.POST("/submit", controllers.CreateAlbum)
-		faq.DELETE("/:uuid", controllers.DeleteAlbum)
+		albums.GET("/lists", controllers.GetAlbums)
+		albums.GET("/:uuid", controllers.GetAlbumByUUID)
+		albums.PUT("/:uuid", controllers.EditAlbum)
+		albums.POST("/submit", controllers.CreateAlbum)
+		albums.DELETE("/:uuid", controllers.DeleteAlbum)
+		albums.PATCH("/images/:uuid", controllers.DeleteImageFromAlbum)
 	}
 }

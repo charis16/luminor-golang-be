@@ -22,6 +22,10 @@ type AlbumInput struct {
 	Thumbnail   string   `form:"-"` // handled manually
 }
 
+type DeleteImageRequest struct {
+	ImageURL string `json:"image_url" binding:"required"`
+}
+
 func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int64, error) {
 	var albums []models.Album
 	var total int64

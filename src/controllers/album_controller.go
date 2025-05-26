@@ -244,3 +244,23 @@ func GetAlbumByUUID(c *gin.Context) {
 		},
 	})
 }
+
+func DeleteImageFromAlbum(c *gin.Context) {
+	id := c.Param("uuid")
+	var req services.DeleteImageRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "image_url is required in body")
+		return
+	}
+
+	err := services.DeleteImageFromAlbum(id, req.ImageURL)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"message": "image deleted successfully",
+	})
+}
