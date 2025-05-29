@@ -26,6 +26,8 @@ RUN go build -o seeder ./cmd/seeder
 # Stage 2: Minimal runtime container
 FROM alpine:latest
 
+RUN apk add --no-cache curl
+
 # Create non-root user for security
 RUN adduser -D appuser
 USER appuser
