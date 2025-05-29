@@ -22,5 +22,3 @@ services:
 networks:
   shared-net:
     external: true
-  luminor_network:
-    external: true
