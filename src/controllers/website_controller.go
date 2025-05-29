@@ -20,7 +20,6 @@ func GetWebsite(c *gin.Context) {
 	utils.RespondSuccess(c, gin.H{
 		"data": website,
 	})
-
 }
 
 func CreateWebsiteInformation(c *gin.Context) {

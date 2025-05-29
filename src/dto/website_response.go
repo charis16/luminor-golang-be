@@ -6,8 +6,6 @@ type WebsiteResponse struct {
 	UUID               string    `json:"uuid"`
 	Address            string    `json:"address"`
 	PhoneNumber        string    `json:"phone_number"`
-	Latitude           string    `json:"latitude"`
-	Longitude          string    `json:"longitude"`
 	Email              string    `json:"email"`
 	UrlInstagram       string    `json:"url_instagram"`
 	UrlTikTok          string    `json:"url_tiktok"`

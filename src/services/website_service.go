@@ -13,8 +13,6 @@ import (
 type WebsiteInput struct {
 	Address            string `json:"address,omitempty"`
 	PhoneNumber        string `json:"phone_number,omitempty"`
-	Latitude           string `json:"latitude,omitempty"`
-	Longitude          string `json:"longitude,omitempty"`
 	Email              string `json:"email,omitempty"`
 	UrlInstagram       string `json:"url_instagram,omitempty"`
 	UrlTikTok          string `json:"url_tiktok,omitempty"`
@@ -50,8 +48,6 @@ func GetWebsite() (dto.WebsiteResponse, int64, error) {
 		OgImage:            website.OgImage,
 		Address:            website.Address,
 		PhoneNumber:        website.PhoneNumber,
-		Latitude:           website.Latitude,
-		Longitude:          website.Longitude,
 		Email:              website.Email,
 		UrlInstagram:       website.URLInstagram,
 		UrlTikTok:          website.URLFacebook,
@@ -75,12 +71,7 @@ func CreateWebsiteInformation(input WebsiteInput) (*models.Website, error) {
 	if input.PhoneNumber != "" {
 		website.PhoneNumber = input.PhoneNumber
 	}
-	if input.Latitude != "" {
-		website.Latitude = input.Latitude
-	}
-	if input.Longitude != "" {
-		website.Longitude = input.Longitude
-	}
+
 	if input.Email != "" {
 		website.Email = input.Email
 	}
@@ -149,12 +140,7 @@ func EditWebsiteInformation(uuid string, input WebsiteInput) (models.Website, er
 	if input.PhoneNumber != "" {
 		website.PhoneNumber = input.PhoneNumber
 	}
-	if input.Latitude != "" {
-		website.Latitude = input.Latitude
-	}
-	if input.Longitude != "" {
-		website.Longitude = input.Longitude
-	}
+
 	if input.Email != "" {
 		website.Email = input.Email
 	}

@@ -8,6 +8,7 @@ import (
 
 func AlbumRoutes(rg *gin.RouterGroup) {
 	albums := rg.Group("/albums")
+	albums.GET("/", controllers.GetLatestAlbum)
 	albums.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{
 		albums.GET("/lists", controllers.GetAlbums)

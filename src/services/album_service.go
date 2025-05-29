@@ -26,6 +26,21 @@ type DeleteImageRequest struct {
 	ImageURL string `json:"image_url" binding:"required"`
 }
 
+func GetLatestAlbums() ([]models.Album, error) {
+	var albums []models.Album
+	if err := config.DB.
+		Select("id", "uuid", "slug", "title", "category_id", "description", "images", "thumbnail", "is_published", "user_id", "created_at", "updated_at").
+		Preload("User").
+		Preload("Category").
+		Order("created_at DESC").
+		Where("is_published = ?", true).
+		Limit(20).
+		Find(&albums).Error; err != nil {
+		return nil, err
+	}
+	return albums, nil
+}
+
 func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int64, error) {
 	var albums []models.Album
 	var total int64

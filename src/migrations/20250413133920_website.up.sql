@@ -7,8 +7,6 @@ CREATE TABLE websites (
     about_us_brief_home_id TEXT,
     address TEXT,
     phone_number VARCHAR(15),
-    latitude VARCHAR(50),
-    longitude VARCHAR(50),
     email VARCHAR(50),
     url_instagram VARCHAR(50),
     url_facebook VARCHAR(50),

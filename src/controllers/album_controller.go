@@ -11,6 +11,33 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+func GetLatestAlbum(c *gin.Context) {
+	album, err := services.GetLatestAlbums()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get latest album")
+		return
+	}
+
+	var albumList []gin.H
+	for _, a := range album {
+		albumList = append(albumList, gin.H{
+			"uuid":          a.UUID,
+			"slug":          a.Slug,
+			"title":         a.Title,
+			"description":   a.Description,
+			"thumbnail":     a.Thumbnail,
+			"images":        a.Images,
+			"created_at":    a.CreatedAt,
+			"user_name":     a.User.Name,
+			"category_name": a.Category.Name,
+		})
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": albumList,
+	})
+}
+
 func GetAlbums(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")
