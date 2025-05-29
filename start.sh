@@ -1,16 +1,17 @@
 #!/bin/sh
 
-echo "🔧 Building and running production containers..."
+set -e
 
-# Matikan dan tarik ulang container
+echo "🔧 Starting build and deployment process..."
+
+echo "📦 Stopping existing containers..."
 docker-compose down
+
+echo "📥 Pulling latest images..."
 docker-compose pull
+
+echo "🚀 Building and starting containers..."
 docker-compose up --build -d
-
-echo "✅ Build and run completed."
-
-echo "⏳ Waiting for Postgres to be ready..."
-sleep 5
 
 # Ambil nama user dari dalam container
 POSTGRES_USER_IN_CONTAINER=$(docker exec shared-postgres printenv POSTGRES_USER)
@@ -23,4 +24,4 @@ else
   echo "✅ Database 'luminor' already exists."
 fi
 
-echo "🚀 Application is ready at http://localhost"
+echo "✅ Build and run process completed."
