@@ -8,17 +8,19 @@ services:
     container_name: luminor-api
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - ./src/.env
     networks:
       - shared-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/healthz" ]
       interval: 10s
       timeout: 3s
       retries: 5
 
 networks:
   shared-net:
+    external: true
+  luminor_network:
     external: true
