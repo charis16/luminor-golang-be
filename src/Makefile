@@ -77,4 +77,4 @@ seed: ## Jalankan seeder
 	$(GO) run ./cmd/seeder
 
 seed-docker: ## Jalankan seeder di dalam container
-	docker exec -it luminor-api go run ./cmd/seeder
+	docker exec -it luminor-api ./seeder
