@@ -20,6 +20,11 @@ func main() {
 	}
 
 	utils.InitMinio()
+	ginMode := utils.GetEnvOrDefault("GIN_MODE", "development")
+	if ginMode != "" && ginMode == "release" {
+		gin.SetMode(ginMode)
+	}
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
