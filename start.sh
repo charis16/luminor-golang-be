@@ -13,8 +13,19 @@ docker-compose pull
 echo "🚀 Building and starting containers..."
 docker-compose up --build -d
 
-# Ambil nama user dari dalam container
+echo "⏳ Waiting for Postgres container to be ready..."
 POSTGRES_USER_IN_CONTAINER=$(docker exec shared-postgres printenv POSTGRES_USER)
+
+if [ -z "$POSTGRES_USER_IN_CONTAINER" ]; then
+  echo "❌ POSTGRES_USER not found in container."
+  exit 1
+fi
+
+until docker exec shared-postgres pg_isready -U "$POSTGRES_USER_IN_CONTAINER" > /dev/null 2>&1; do
+  printf "."
+  sleep 1
+done
+echo ""
 
 echo "🧪 Checking if 'luminor' database exists..."
 if ! docker exec shared-postgres psql -U "$POSTGRES_USER_IN_CONTAINER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='luminor'" | grep -q 1; then

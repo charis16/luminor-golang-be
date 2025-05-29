@@ -1,5 +1,5 @@
 # Stage 1: Build Go App
-FROM golang:1.23-bullseye AS builder
+FROM golang:1.23-alpine AS builder
 
 # Enable Go modules and optimizations
 ENV CGO_ENABLED=0 GOOS=linux
