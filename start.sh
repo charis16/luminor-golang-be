@@ -11,7 +11,7 @@ echo "📥 Pulling latest images..."
 docker-compose pull
 
 echo "🚀 Building and starting containers..."
-docker-compose up --build -d
+docker-compose up --build -d --no-cache
 
 echo "⏳ Waiting for Postgres container to be ready..."
 POSTGRES_USER_IN_CONTAINER=$(docker exec shared-postgres printenv POSTGRES_USER)
