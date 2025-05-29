@@ -22,7 +22,7 @@ func main() {
 	utils.InitMinio()
 	ginMode := utils.GetEnvOrDefault("GIN_MODE", "development")
 	if ginMode != "" && ginMode == "release" {
-		gin.SetMode(ginMode)
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.Default()
