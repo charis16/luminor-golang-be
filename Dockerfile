@@ -14,6 +14,9 @@ RUN go mod download
 COPY src/ ./src
 WORKDIR /app/src
 
+# ⬇️ Tambahkan ini agar godotenv.Load() bisa menemukan file .env
+COPY src/.env .env
+
 # Build statically-linked binary
 RUN go build -o main .
 
@@ -28,6 +31,8 @@ WORKDIR /app
 
 # Copy built binary from builder
 COPY --from=builder /app/src/main .
+
+COPY --from=builder /app/src/.env .env
 
 # Expose the default port (can still be overridden by env)
 EXPOSE 8080

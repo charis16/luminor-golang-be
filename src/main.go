@@ -44,9 +44,16 @@ func main() {
 	})
 
 	port := utils.GetEnvOrDefault("PORT", "8080")
-	// r.Run(":" + port)
-	err = r.RunTLS(":"+port, "../../certs/localhost.pem", "../../certs/localhost-key.pem")
-	if err != nil {
-		log.Fatal("RunTLS failed:", err)
+	env := utils.GetEnvOrDefault("APP_ENV", "development")
+	if env == "production" {
+		log.Println("🚀 Running in PRODUCTION mode (no TLS)...")
+		if err := r.Run(":" + port); err != nil {
+			log.Fatal("Run failed:", err)
+		}
+	} else {
+		log.Println("🔐 Running in DEV mode with TLS...")
+		if err := r.RunTLS(":"+port, "../../certs/localhost.pem", "../../certs/localhost-key.pem"); err != nil {
+			log.Fatal("RunTLS failed:", err)
+		}
 	}
 }
