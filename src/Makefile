@@ -1,6 +1,6 @@
 # 📦 Makefile untuk development backend Go
 GO := go
-MIGRATION_DIR := ./src/migrations
+MIGRATION_DIR := src/migrations
 
 # ⬇️ Load variable dari file .env
 include .env
