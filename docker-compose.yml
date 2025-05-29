@@ -13,8 +13,6 @@ services:
       - ./src/.env
     networks:
       - shared-net
-    depends_on:
-      - shared-postgres
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
       interval: 10s
