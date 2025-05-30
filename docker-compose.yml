@@ -2,10 +2,10 @@ version: "3.9"
 
 services:
   app:
+    container_name: luminor-api
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: luminor-api
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
