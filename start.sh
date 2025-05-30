@@ -5,7 +5,8 @@ set -e
 echo "🔧 Starting build and deployment process..."
 
 echo "📦 Stopping existing containers..."
-docker-compose down
+docker-compose down --volumes --remove-orphans
+docker system prune -f
 
 echo "📥 Pulling latest images..."
 docker-compose pull
