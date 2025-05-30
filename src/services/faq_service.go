@@ -59,6 +59,36 @@ func GetAllFaqs(page int, limit int, search string) ([]dto.FaqResponse, int64, e
 	return response, total, nil
 }
 
+func GetPublishedFaqs() ([]dto.FaqResponse, error) {
+	var faqs []models.Faq
+
+	query := config.DB.Model(&models.Faq{})
+
+	if err := query.
+		Select("uuid", "question_id", "question_en", "answer_id", "answer_en", "is_published", "created_at", "updated_at").
+		Where("is_published = ?", true).
+		Find(&faqs).Error; err != nil {
+		return nil, err
+	}
+
+	// Mapping ke response DTO
+	response := make([]dto.FaqResponse, len(faqs))
+	for i, faq := range faqs {
+		response[i] = dto.FaqResponse{
+			UUID:        faq.UUID,
+			AnswerID:    faq.AnswerID,
+			AnswerEn:    faq.AnswerEn,
+			QuestionID:  faq.QuestionID,
+			QuestionEn:  faq.QuestionEn,
+			IsPublished: faq.IsPublished,
+			CreatedAt:   faq.CreatedAt,
+			UpdatedAt:   faq.UpdatedAt,
+		}
+	}
+
+	return response, nil
+}
+
 func CreateFaq(input FaqInput) (*models.Faq, error) {
 	tx := config.DB.Begin() // Mulai transaksi
 

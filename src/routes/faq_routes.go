@@ -8,6 +8,7 @@ import (
 
 func FaqRoutes(rg *gin.RouterGroup) {
 	faq := rg.Group("/faqs")
+	faq.GET("/", controllers.GetPublishedFaqs)
 	faq.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{
 		faq.GET("/lists", controllers.GetFaqs)

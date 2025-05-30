@@ -41,6 +41,20 @@ func GetFaqs(c *gin.Context) {
 
 }
 
+func GetPublishedFaqs(c *gin.Context) {
+
+	faqs, err := services.GetPublishedFaqs()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get faqs")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": faqs,
+	})
+
+}
+
 func CreateFaq(c *gin.Context) {
 	var input services.FaqInput
 
