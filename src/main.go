@@ -27,8 +27,10 @@ func main() {
 
 	r := gin.Default()
 
+	feUrl := utils.GetEnvOrDefault("FE_URL", "http://localhost:3000")
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://localhost:3000"}, // frontend kamu
+		AllowOrigins:     []string{feUrl}, // frontend kamu
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Set-Cookie"},
