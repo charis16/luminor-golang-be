@@ -12,7 +12,6 @@ echo "🧹 Cleaning up unused Docker resources..."
 docker container prune -f
 docker volume prune -f
 docker network prune -f
-docker images -f "dangling=true" -q | xargs -r docker rmi -f
 
 # 🔥 Hapus image dangling (<none>)
 docker images -f "dangling=true" -q | xargs -r docker rmi -f
