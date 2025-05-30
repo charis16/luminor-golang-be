@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
           port: 22
-          timeout: 3600
+          timeout: 1h
           script: |
             cd /home/charis/apps/luminor/luminor-golang-be
             git pull origin main
