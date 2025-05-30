@@ -14,6 +14,12 @@ docker volume prune -f
 docker network prune -f
 docker images -f "dangling=true" -q | xargs -r docker rmi -f
 
+# 🔥 Hapus image dangling (<none>)
+docker images -f "dangling=true" -q | xargs -r docker rmi -f
+
+# 🔥 Hapus cache build yang tidak dipakai
+docker builder prune -af
+
 # Step 2: Pull and rebuild images
 echo "📥 Pulling latest base images..."
 docker-compose pull
