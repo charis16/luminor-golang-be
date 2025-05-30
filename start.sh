@@ -6,16 +6,27 @@ echo "🔧 Starting build and deployment process..."
 
 echo "📦 Stopping existing containers..."
 docker-compose down --volumes --remove-orphans
-docker system prune -f
+
+echo "🧹 Cleaning unused containers and networks..."
+docker container prune -f
+docker volume prune -f
+docker network prune -f
 
 echo "📥 Pulling latest images..."
 docker-compose pull
 
 echo "🚀 Building and starting containers..."
-docker-compose build --no-cache
+docker-compose build
 docker-compose up -d
 
-echo "⏳ Waiting for Postgres container to be ready..."
+echo "⏳ Waiting for Postgres container to start..."
+until docker inspect -f '{{.State.Running}}' shared-postgres 2>/dev/null | grep true > /dev/null; do
+  printf "."
+  sleep 1
+done
+echo ""
+
+echo "⏳ Waiting for Postgres to be ready..."
 POSTGRES_USER_IN_CONTAINER=$(docker exec shared-postgres printenv POSTGRES_USER)
 
 if [ -z "$POSTGRES_USER_IN_CONTAINER" ]; then
