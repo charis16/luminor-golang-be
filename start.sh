@@ -4,51 +4,56 @@ set -e
 
 echo "🔧 Starting build and deployment process..."
 
-echo "📦 Stopping existing containers..."
+# Step 1: Stop existing containers and clean up
+echo "📦 Stopping existing containers and removing orphans..."
 docker-compose down --volumes --remove-orphans
 
-echo "🧹 Cleaning unused containers, networks, and dangling images..."
+echo "🧹 Cleaning up unused Docker resources..."
 docker container prune -f
 docker volume prune -f
 docker network prune -f
 docker images -f "dangling=true" -q | xargs -r docker rmi -f
 
-echo "📥 Pulling latest images..."
+# Step 2: Pull and rebuild images
+echo "📥 Pulling latest base images..."
 docker-compose pull
 
-echo "🔨 Building with tag and force cleanup..."
+echo "🔨 Building containers from Dockerfile..."
 docker-compose build --no-cache --force-rm
 
+# Step 3: Start containers
 echo "🚀 Starting containers..."
 docker-compose up -d
 
-echo "⏳ Waiting for Postgres container to start..."
+# Step 4: Wait for Postgres to become available
+echo "⏳ Waiting for 'shared-postgres' container to start..."
 until docker inspect -f '{{.State.Running}}' shared-postgres 2>/dev/null | grep true > /dev/null; do
   printf "."
   sleep 1
 done
 echo ""
 
-echo "⏳ Waiting for Postgres to be ready..."
-POSTGRES_USER_IN_CONTAINER=$(docker exec shared-postgres printenv POSTGRES_USER)
+echo "⏳ Waiting for Postgres service to be ready..."
+POSTGRES_USER=$(docker exec shared-postgres printenv POSTGRES_USER)
 
-if [ -z "$POSTGRES_USER_IN_CONTAINER" ]; then
-  echo "❌ POSTGRES_USER not found in container."
+if [ -z "$POSTGRES_USER" ]; then
+  echo "❌ Environment variable POSTGRES_USER not found in container."
   exit 1
 fi
 
-until docker exec shared-postgres pg_isready -U "$POSTGRES_USER_IN_CONTAINER" > /dev/null 2>&1; do
+until docker exec shared-postgres pg_isready -U "$POSTGRES_USER" > /dev/null 2>&1; do
   printf "."
   sleep 1
 done
 echo ""
 
-echo "🧪 Checking if 'luminor' database exists..."
-if ! docker exec shared-postgres psql -U "$POSTGRES_USER_IN_CONTAINER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='luminor'" | grep -q 1; then
-  echo "🆕 Creating database 'luminor'..."
-  docker exec shared-postgres psql -U "$POSTGRES_USER_IN_CONTAINER" -d postgres -c "CREATE DATABASE luminor"
+# Step 5: Ensure database exists
+echo "🧪 Verifying 'luminor' database..."
+if ! docker exec shared-postgres psql -U "$POSTGRES_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='luminor'" | grep -q 1; then
+  echo "🆕 Creating 'luminor' database..."
+  docker exec shared-postgres psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE luminor"
 else
   echo "✅ Database 'luminor' already exists."
 fi
 
-echo "✅ Build and run process completed."
+echo "✅ Build and deployment process completed successfully."
