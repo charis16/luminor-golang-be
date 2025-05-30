@@ -2,6 +2,11 @@
 
 set -e
 
+# 💓 Prevent GitHub Actions timeout (heartbeat)
+(while true; do echo "💓 Still running at $(date)"; sleep 60; done) &
+KEEP_ALIVE_PID=$!
+trap 'kill $KEEP_ALIVE_PID' EXIT
+
 echo "🔧 Starting build and deployment process..."
 
 # Step 1: Stop existing containers and clean up
@@ -14,10 +19,10 @@ docker volume prune -f
 docker network prune -f
 
 # 🔥 Hapus image dangling (<none>)
-docker images -f "dangling=true" -q | xargs -r docker rmi -f
+docker images -f "dangling=true" -q | xargs -r docker rmi -f || true
 
 # 🔥 Hapus cache build yang tidak dipakai
-docker builder prune -af
+docker builder prune -af || true
 
 # Step 2: Pull and rebuild images
 echo "📥 Pulling latest base images..."
