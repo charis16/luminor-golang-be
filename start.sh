@@ -7,16 +7,19 @@ echo "🔧 Starting build and deployment process..."
 echo "📦 Stopping existing containers..."
 docker-compose down --volumes --remove-orphans
 
-echo "🧹 Cleaning unused containers and networks..."
+echo "🧹 Cleaning unused containers, networks, and dangling images..."
 docker container prune -f
 docker volume prune -f
 docker network prune -f
+docker images -f "dangling=true" -q | xargs -r docker rmi -f
 
 echo "📥 Pulling latest images..."
 docker-compose pull
 
-echo "🚀 Building and starting containers..."
-docker-compose build
+echo "🔨 Building with tag and force cleanup..."
+docker-compose build --no-cache --force-rm
+
+echo "🚀 Starting containers..."
 docker-compose up -d
 
 echo "⏳ Waiting for Postgres container to start..."
