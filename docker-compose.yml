@@ -3,7 +3,7 @@ version: "3.9"
 services:
   app:
     container_name: luminor-api
-    image: luminor-golang-be_app:latest
+    image: luminor-golang-be_app:v1.0.0
     build:
       context: .
       dockerfile: Dockerfile
