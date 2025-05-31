@@ -19,7 +19,8 @@ func main() {
 		log.Println("⚠️  .env not found, using default PORT 8080")
 	}
 
-	utils.InitMinio()
+	utils.InitR2()
+	//utils.InitMinio()
 	ginMode := utils.GetEnvOrDefault("GIN_MODE", "development")
 	if ginMode != "" && ginMode == "release" {
 		gin.SetMode(gin.ReleaseMode)

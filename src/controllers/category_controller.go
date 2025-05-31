@@ -12,6 +12,18 @@ import (
 
 var validate = validator.New()
 
+func GetPublishedCategories(c *gin.Context) {
+	categories, err := services.GetPublishedCategories()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get faqs")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": categories,
+	})
+}
+
 func GetCategories(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")

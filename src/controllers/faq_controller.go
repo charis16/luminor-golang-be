@@ -42,7 +42,6 @@ func GetFaqs(c *gin.Context) {
 }
 
 func GetPublishedFaqs(c *gin.Context) {
-
 	faqs, err := services.GetPublishedFaqs()
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, "failed to get faqs")

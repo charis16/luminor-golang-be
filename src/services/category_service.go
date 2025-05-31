@@ -15,6 +15,31 @@ type CategoryInput struct {
 	IsPublished bool   `json:"is_published" validate:"required"`
 }
 
+func GetPublishedCategories() ([]dto.CategoryResponse, error) {
+	var categories []models.Category
+
+	if err := config.DB.Where("is_published = ?", true).
+		Select("uuid", "name", "is_published", "created_at", "updated_at").
+		Order("created_at DESC").
+		Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	// Mapping ke response DTO
+	response := make([]dto.CategoryResponse, len(categories))
+	for i, category := range categories {
+		response[i] = dto.CategoryResponse{
+			UUID:        category.UUID,
+			Name:        category.Name,
+			IsPublished: category.IsPublished,
+			CreatedAt:   category.CreatedAt,
+			UpdatedAt:   category.UpdatedAt,
+		}
+	}
+
+	return response, nil
+}
+
 func GetAllCategories(page int, limit int, search string) ([]dto.CategoryResponse, int64, error) {
 	var categories []models.Category
 	var total int64

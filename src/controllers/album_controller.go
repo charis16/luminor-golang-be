@@ -96,9 +96,9 @@ func CreateAlbum(c *gin.Context) {
 		}
 		defer file.Close()
 
-		url, err := utils.UploadToMinio("albums", file, fileHeader)
+		url, err := utils.UploadToR2(file, fileHeader, "albums") // pakai bucket: luminor, prefix: albums
 		if err != nil {
-			utils.RespondError(c, http.StatusInternalServerError, "Failed to upload")
+			utils.RespondError(c, http.StatusInternalServerError, "Failed to upload image")
 			return
 		}
 
@@ -115,7 +115,7 @@ func CreateAlbum(c *gin.Context) {
 		}
 		defer file.Close()
 
-		url, err := utils.UploadToMinio("albums", file, fileHeader)
+		url, err := utils.UploadToR2(file, fileHeader, "albums") // thumbnail juga simpan ke prefix albums
 		if err != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "Failed to upload thumbnail")
 			return
@@ -140,6 +140,7 @@ func CreateAlbum(c *gin.Context) {
 
 func EditAlbum(c *gin.Context) {
 	id := c.Param("uuid")
+
 	// Cek apakah album dengan UUID tersebut ada
 	_, err := services.GetAlbumByUUID(id)
 	if err != nil {
@@ -156,8 +157,8 @@ func EditAlbum(c *gin.Context) {
 	input.Description = c.PostForm("description")
 	input.UserID = c.PostForm("user_id")
 	input.IsPublished = c.PostForm("is_published")
-	var thumbnailUrl = c.PostForm("thumbnail_url")
-	var mediaUrl = c.PostForm("media_url")
+	thumbnailUrl := c.PostForm("thumbnail_url")
+	mediaUrl := c.PostForm("media_url")
 
 	// Ambil file-file jika ada
 	form, err := c.MultipartForm()
@@ -167,21 +168,20 @@ func EditAlbum(c *gin.Context) {
 	}
 
 	var imageUrls []string
+
 	// Ambil URL dari mediaUrl (string comma-separated)
 	if mediaUrl != "" {
-		urls := strings.Split(mediaUrl, ",")
-		for _, url := range urls {
-			trimmed := strings.TrimSpace(url)
-			if trimmed != "" {
-				imageUrls = append(imageUrls, trimmed)
+		for _, url := range strings.Split(mediaUrl, ",") {
+			url = strings.TrimSpace(url)
+			if url != "" {
+				imageUrls = append(imageUrls, url)
 			}
 		}
 	}
 
-	// Ambil file dari form dan upload
+	// Upload gambar baru jika ada
 	if form != nil && form.File != nil {
 		files := form.File["images"]
-
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()
 			if err != nil {
@@ -189,9 +189,8 @@ func EditAlbum(c *gin.Context) {
 				return
 			}
 
-			// Upload langsung, lalu close
-			url, err := utils.UploadToMinio("albums", file, fileHeader)
-			file.Close() // pastikan selalu ditutup meskipun upload gagal
+			url, err := utils.UploadToR2(file, fileHeader, "albums")
+			file.Close()
 
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "Failed to upload image")
@@ -202,9 +201,9 @@ func EditAlbum(c *gin.Context) {
 		}
 	}
 
-	// Set hasil akhir ke input.Images
 	input.Images = imageUrls
 
+	// Upload thumbnail jika ada file baru
 	if fileHeader, err := c.FormFile("thumbnail"); err == nil && fileHeader != nil {
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -213,7 +212,7 @@ func EditAlbum(c *gin.Context) {
 		}
 		defer file.Close()
 
-		url, err := utils.UploadToMinio("albums", file, fileHeader)
+		url, err := utils.UploadToR2(file, fileHeader, "albums")
 		if err != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "Failed to upload thumbnail")
 			return
@@ -221,6 +220,7 @@ func EditAlbum(c *gin.Context) {
 		input.Thumbnail = url
 	}
 
+	// Jika tidak ada file thumbnail, pakai URL langsung
 	if thumbnailUrl != "" {
 		input.Thumbnail = thumbnailUrl
 	}
@@ -231,7 +231,7 @@ func EditAlbum(c *gin.Context) {
 		return
 	}
 
-	// Update ke service
+	// Update album
 	updatedAlbum, err := services.UpdateAlbum(id, input)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, err.Error())

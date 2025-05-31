@@ -285,3 +285,36 @@ func GetUserOptions() ([]dto.UserOption, error) {
 
 	return response, nil
 }
+
+func GetTeamMembers() ([]dto.UserResponse, error) {
+	var users []models.User
+	if err := config.DB.
+		Where("is_published = ?", true).
+		Where("role != ?", "admin").
+		Order("created_at DESC").
+		Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to get team members: %v", err)
+	}
+
+	response := make([]dto.UserResponse, len(users))
+	for i, user := range users {
+		response[i] = dto.UserResponse{
+			UUID:         user.UUID,
+			Name:         user.Name,
+			Email:        user.Email,
+			Photo:        user.Photo,
+			Description:  user.Description,
+			Role:         user.Role,
+			PhoneNumber:  user.PhoneNumber,
+			URLInstagram: user.URLInstagram,
+			URLTikTok:    user.URLTiktok,
+			URLFacebook:  user.URLFacebook,
+			URLYoutube:   user.URLYoutube,
+			IsPublished:  user.IsPublished,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+		}
+	}
+
+	return response, nil
+}

@@ -286,3 +286,22 @@ func GetUserOptions(c *gin.Context) {
 		"data": options,
 	})
 }
+
+func GetTeamMembers(c *gin.Context) {
+	teamMembers, err := services.GetTeamMembers()
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "failed to get team members")
+		return
+	}
+
+	if len(teamMembers) == 0 {
+		utils.RespondSuccess(c, gin.H{
+			"data": []string{},
+		})
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": teamMembers,
+	})
+}
