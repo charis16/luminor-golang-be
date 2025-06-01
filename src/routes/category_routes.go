@@ -17,5 +17,6 @@ func CategoryRoutes(rg *gin.RouterGroup) {
 		category.PUT("/:uuid", controllers.EditCategory)
 		category.POST("/submit", controllers.CreateCategory)
 		category.DELETE("/:uuid", controllers.DeleteCategory)
+		category.PATCH("/:uuid", controllers.DeleteImageCategory)
 	}
 }

@@ -73,7 +73,7 @@ func CreateUser(c *gin.Context) {
 		}
 		defer file.Close()
 
-		photoURL, err = utils.UploadToMinio("users", file, fileHeader)
+		photoURL, err = utils.UploadToR2(file, fileHeader, "users")
 		if err != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 			return
@@ -143,14 +143,14 @@ func EditUser(c *gin.Context) {
 		}
 		defer file.Close()
 
-		photoURL, err = utils.UploadToMinio("users", file, fileHeader)
+		photoURL, err = utils.UploadToR2(file, fileHeader, "users")
 		if err != nil {
 			utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 			return
 		}
 
 		if user.Photo != "" {
-			err = utils.DeleteFromMinio("users", user.Photo)
+			err = utils.DeleteFromR2("users", user.Photo)
 			if err != nil {
 				fmt.Println("Warning: failed to delete old photo:", err)
 			}

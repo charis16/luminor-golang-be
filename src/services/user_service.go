@@ -182,7 +182,7 @@ func DeleteUser(uuid string) error {
 
 	// === Step 1: Delete user photo from MinIO bucket "users"
 	if user.Photo != "" {
-		if err := utils.DeleteFromMinio("users", user.Photo); err != nil {
+		if err := utils.DeleteFromR2("users", user.Photo); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete user photo: %v", err)
 		}
@@ -202,7 +202,7 @@ func DeleteUser(uuid string) error {
 
 			for _, image := range images {
 				if image != "" {
-					if err := utils.DeleteFromMinio("albums", image); err != nil {
+					if err := utils.DeleteFromR2("albums", image); err != nil {
 						tx.Rollback()
 						return fmt.Errorf("failed to delete album image: %v", err)
 					}
@@ -244,7 +244,7 @@ func DeleteImageUser(uuid string) error {
 	}
 
 	if user.Photo != "" {
-		if err := utils.DeleteFromMinio("users", user.Photo); err != nil {
+		if err := utils.DeleteFromR2("users", user.Photo); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete user photo: %v", err)
 		}

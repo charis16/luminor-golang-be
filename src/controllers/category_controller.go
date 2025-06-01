@@ -7,6 +7,7 @@ import (
 	"github.com/charis16/luminor-golang-be/src/services"
 	"github.com/charis16/luminor-golang-be/src/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -59,8 +60,9 @@ func GetCategories(c *gin.Context) {
 func CreateCategory(c *gin.Context) {
 	var input services.CategoryInput
 
-	if err := c.ShouldBind(&input); err != nil {
-		utils.RespondError(c, http.StatusBadRequest, "Invalid input format")
+	// Gunakan ShouldBind
+	if err := c.ShouldBindWith(&input, binding.FormMultipart); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "Invalid input: "+err.Error())
 		return
 	}
 
@@ -68,6 +70,22 @@ func CreateCategory(c *gin.Context) {
 		// Bisa custom format error jika mau
 		utils.RespondError(c, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if fileHeader, err := c.FormFile("image"); err == nil && fileHeader != nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			utils.RespondError(c, http.StatusInternalServerError, "Failed to open thumbnail")
+			return
+		}
+		defer file.Close()
+
+		url, err := utils.UploadToR2(file, fileHeader, "categories") // thumbnail juga simpan ke prefix albums
+		if err != nil {
+			utils.RespondError(c, http.StatusInternalServerError, "Failed to upload thumbnail")
+			return
+		}
+		input.PhotoUrl = url
 	}
 
 	category, err := services.CreateCategory(input)
@@ -150,10 +168,32 @@ func GetCategoryByUUID(c *gin.Context) {
 		"data": gin.H{
 			"uuid":         category.UUID,
 			"name":         category.Name,
+			"description":  category.Description,
+			"slug":         category.Slug,
+			"photo_url":    category.PhotoURL,
 			"is_published": category.IsPublished,
 			"created_at":   category.CreatedAt,
 			"updated_at":   category.UpdatedAt,
 		},
+	})
+}
+
+func DeleteImageCategory(c *gin.Context) {
+	id := c.Param("uuid")
+
+	if id == "" {
+		utils.RespondError(c, http.StatusBadRequest, "id is required")
+		return
+	}
+
+	err := services.DeleteImageCategory(id)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"message": "image user deleted successfully",
 	})
 }
 

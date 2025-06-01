@@ -45,7 +45,8 @@ func CreateWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			ogImage, err = utils.UploadToMinio("websites", file, fileHeader)
+			ogImage, err = utils.UploadToR2(file, fileHeader, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return
@@ -61,7 +62,8 @@ func CreateWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			videoWeb, err = utils.UploadToMinio("websites", file, fileHeaderVideoWeb)
+			videoWeb, err = utils.UploadToR2(file, fileHeaderVideoWeb, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return
@@ -77,7 +79,8 @@ func CreateWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			videoMobile, err = utils.UploadToMinio("websites", file, fileHeaderVideoMobile)
+			videoMobile, err = utils.UploadToR2(file, fileHeaderVideoMobile, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return
@@ -153,7 +156,8 @@ func EditWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			ogImage, err = utils.UploadToMinio("websites", file, fileHeader)
+			ogImage, err = utils.UploadToR2(file, fileHeader, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return
@@ -169,7 +173,8 @@ func EditWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			videoWeb, err = utils.UploadToMinio("websites", file, fileHeaderVideoWeb)
+			videoWeb, err = utils.UploadToR2(file, fileHeaderVideoWeb, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return
@@ -185,7 +190,8 @@ func EditWebsiteInformation(c *gin.Context) {
 			}
 			defer file.Close()
 
-			videoMobile, err = utils.UploadToMinio("websites", file, fileHeaderVideoMobile)
+			videoMobile, err = utils.UploadToR2(file, fileHeaderVideoMobile, "websites")
+
 			if err != nil {
 				utils.RespondError(c, http.StatusInternalServerError, "failed to upload photo")
 				return

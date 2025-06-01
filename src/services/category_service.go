@@ -12,14 +12,17 @@ import (
 
 type CategoryInput struct {
 	Name        string `form:"name" validate:"required"`
-	IsPublished bool   `json:"is_published" validate:"required"`
+	Slug        string `form:"slug" validate:"required"`
+	Description string `form:"description" validate:"required"`
+	IsPublished string `form:"is_published" validate:"required"`
+	PhotoUrl    string `form:"-"` // handled manually
 }
 
 func GetPublishedCategories() ([]dto.CategoryResponse, error) {
 	var categories []models.Category
 
 	if err := config.DB.Where("is_published = ?", true).
-		Select("uuid", "name", "is_published", "created_at", "updated_at").
+		Select("uuid", "name", "is_published", "slug", "description", "photo_url", "created_at", "updated_at").
 		Order("created_at DESC").
 		Find(&categories).Error; err != nil {
 		return nil, err
@@ -31,6 +34,9 @@ func GetPublishedCategories() ([]dto.CategoryResponse, error) {
 		response[i] = dto.CategoryResponse{
 			UUID:        category.UUID,
 			Name:        category.Name,
+			Description: category.Description,
+			Slug:        category.Slug,
+			PhotoUrl:    category.PhotoURL,
 			IsPublished: category.IsPublished,
 			CreatedAt:   category.CreatedAt,
 			UpdatedAt:   category.UpdatedAt,
@@ -85,7 +91,10 @@ func CreateCategory(input CategoryInput) (*models.Category, error) {
 
 	category := models.Category{
 		Name:        input.Name,
-		IsPublished: input.IsPublished,
+		IsPublished: input.IsPublished == "1",
+		Description: input.Description,
+		Slug:        input.Slug,
+		PhotoURL:    input.PhotoUrl,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -120,7 +129,14 @@ func UpdateCategory(uuid string, input CategoryInput) (models.Category, error) {
 	}
 
 	category.Name = input.Name
-	category.IsPublished = input.IsPublished
+	category.IsPublished = input.IsPublished == "1"
+	category.Description = input.Description
+	category.Slug = input.Slug
+
+	if input.PhotoUrl != "" && input.PhotoUrl != "undefined" {
+		category.PhotoURL = input.PhotoUrl
+	}
+
 	category.UpdatedAt = time.Now()
 
 	if err := tx.Save(&category).Error; err != nil {
@@ -161,7 +177,7 @@ func DeleteCategory(uuid string) error {
 
 			for _, image := range images {
 				if image != "" {
-					if err := utils.DeleteFromMinio("albums", image); err != nil {
+					if err := utils.DeleteFromR2("albums", image); err != nil {
 						tx.Rollback()
 						return fmt.Errorf("failed to delete album image: %v", err)
 					}
@@ -188,6 +204,33 @@ func DeleteCategory(uuid string) error {
 	}
 
 	return nil
+}
+
+func DeleteImageCategory(uuid string) error {
+	tx := config.DB.Begin()
+	var category models.Category
+
+	// Cari category berdasarkan UUID
+	if err := tx.Where("uuid = ?", uuid).First(&category).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if category.PhotoURL != "" {
+		if err := utils.DeleteFromR2("categories", category.PhotoURL); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to delete category image: %v", err)
+		}
+	}
+
+	// Set PhotoURL ke kosong
+	category.PhotoURL = ""
+	if err := tx.Save(&category).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func GetCategoryOptions() ([]dto.CategoryOption, error) {

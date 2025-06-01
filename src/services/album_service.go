@@ -244,7 +244,7 @@ func DeleteAlbum(uuid string) error {
 	for _, img := range album.Images {
 		img = strings.Trim(img, `"`)
 		if img != "" {
-			if err := utils.DeleteFromMinio("albums", img); err != nil {
+			if err := utils.DeleteFromR2("albums", img); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("failed to delete album image: %v", err)
 			}
@@ -253,7 +253,7 @@ func DeleteAlbum(uuid string) error {
 
 	// Hapus thumbnail dari MinIO
 	if album.Thumbnail != "" {
-		if err := utils.DeleteFromMinio("albums", album.Thumbnail); err != nil {
+		if err := utils.DeleteFromR2("albums", album.Thumbnail); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete album image: %v", err)
 		}
@@ -285,7 +285,7 @@ func DeleteImageFromAlbum(uuid string, imageURL string) error {
 
 	// Hapus dari MinIO
 	if imageFilename != "" {
-		if err := utils.DeleteFromMinio("albums", imageFilename); err != nil {
+		if err := utils.DeleteFromR2("albums", imageFilename); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete album image from MinIO: %v", err)
 		}

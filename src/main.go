@@ -20,7 +20,6 @@ func main() {
 	}
 
 	utils.InitR2()
-	//utils.InitMinio()
 	ginMode := utils.GetEnvOrDefault("GIN_MODE", "development")
 	if ginMode != "" && ginMode == "release" {
 		gin.SetMode(gin.ReleaseMode)

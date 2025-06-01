@@ -52,7 +52,7 @@ func UploadToR2(file multipart.File, fileHeader *multipart.FileHeader, prefix st
 	defer file.Close()
 
 	bucket := GetEnvOrPanic("R2_BUCKET_NAME")
-	publicURL := GetEnvOrPanic("R2_ENDPOINT")
+	publicURL := GetEnvOrPanic("R2_PUBLIC_URL")
 
 	// 1. Clean nama file
 	cleanFilename := strings.ReplaceAll(fileHeader.Filename, " ", "-")
@@ -110,7 +110,7 @@ func StreamImageFromR2(c *gin.Context, filename string, contentType string, cach
 	io.Copy(c.Writer, resp.Body)
 }
 
-func DeleteFromR2(fileURL string) error {
+func DeleteFromR2(bucket string, fileURL string) error {
 	parsed, err := url.Parse(fileURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
@@ -123,10 +123,8 @@ func DeleteFromR2(fileURL string) error {
 		return fmt.Errorf("URL does not match R2 base URL")
 	}
 
-	// Ambil path setelah base URL → jadi nama objeknya
+	// Ambil path setelah base URL → jadi nama objeknya (bisa termasuk folder)
 	objectKey := strings.TrimPrefix(parsed.Path, "/")
-	objectKey = strings.TrimPrefix(objectKey, strings.TrimPrefix(r2BaseURL, "https://"))
-	objectKey = strings.TrimPrefix(objectKey, strings.TrimPrefix(r2BaseURL, "http://"))
 
 	// Pastikan tidak kosong
 	if objectKey == "" {

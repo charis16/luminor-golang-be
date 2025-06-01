@@ -208,20 +208,20 @@ func DeleteWebsiteInformation(data models.Website, status string) error {
 	}
 
 	if status == "video_web" {
-		if err := utils.DeleteFromMinio("websites", data.VideoWeb); err != nil {
+		if err := utils.DeleteFromR2("albums", data.VideoWeb); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete websites video_web photo: %v", err)
 		}
 
 		data.VideoWeb = ""
 	} else if status == "video_mobile" {
-		if err := utils.DeleteFromMinio("websites", data.VideoMobile); err != nil {
+		if err := utils.DeleteFromR2("websites", data.VideoMobile); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete websites video_mobile photo: %v", err)
 		}
 		data.VideoMobile = ""
 	} else if status == "og_image" {
-		if err := utils.DeleteFromMinio("websites", data.OgImage); err != nil {
+		if err := utils.DeleteFromR2("websites", data.OgImage); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to delete websites og_image photo: %v", err)
 		}
