@@ -335,6 +335,7 @@ func GetTeamMembers() ([]dto.UserResponse, error) {
 			UUID:         user.UUID,
 			Name:         user.Name,
 			Email:        user.Email,
+			Slug:         user.Slug,
 			Photo:        user.Photo,
 			Description:  user.Description,
 			Role:         user.Role,

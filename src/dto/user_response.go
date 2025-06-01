@@ -9,6 +9,7 @@ type UserResponse struct {
 	Photo        string    `json:"photo"`
 	Description  string    `json:"description"`
 	Role         string    `json:"role"`
+	Slug         string    `json:"slug"`
 	PhoneNumber  string    `json:"phone_number"`
 	URLInstagram string    `json:"url_instagram"`
 	URLTikTok    string    `json:"url_tiktok"`
