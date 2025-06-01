@@ -110,12 +110,12 @@ func CreateAlbum(input AlbumInput) (*models.Album, error) {
 
 	// Cek apakah slug sudah ada
 	var existingAlbum models.Album
-	if err := tx.Where("slug = ?", input.Slug).First(&existingAlbum).Error; err == nil {
+	if err := tx.Where("slug = ?", strings.ReplaceAll(input.Slug, " ", "-")).First(&existingAlbum).Error; err == nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("slug already exists")
 	}
 	album := models.Album{
-		Slug:        input.Slug,
+		Slug:        strings.ReplaceAll(input.Slug, " ", "-"),
 		Title:       input.Title,
 		CategoryID:  category.ID,
 		Description: input.Description,
@@ -163,7 +163,7 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 
 	if input.Slug != album.Slug {
 		var existingAlbum models.Album
-		if err := tx.Where("slug = ? AND uuid != ?", input.Slug, uuid).First(&existingAlbum).Error; err == nil {
+		if err := tx.Where("slug = ? AND uuid != ?", strings.ReplaceAll(input.Slug, " ", "-"), uuid).First(&existingAlbum).Error; err == nil {
 			tx.Rollback()
 			return models.Album{}, fmt.Errorf("slug already exists")
 		}
@@ -181,7 +181,7 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 		return models.Album{}, err
 	}
 
-	album.Slug = input.Slug
+	album.Slug = strings.ReplaceAll(input.Slug, " ", "-")
 	album.Title = input.Title
 	album.Description = input.Description
 

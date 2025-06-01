@@ -52,6 +52,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	slug := c.PostForm("slug")
 	description := c.PostForm("description")
 	password := c.PostForm("password")
 	urlInstagram := c.PostForm("url_instagram")
@@ -81,6 +82,7 @@ func CreateUser(c *gin.Context) {
 	}
 
 	input := services.UserInput{
+		Slug:         slug,
 		Name:         name,
 		Email:        email,
 		Role:         role,
@@ -107,6 +109,7 @@ func CreateUser(c *gin.Context) {
 
 func EditUser(c *gin.Context) {
 	id := c.Param("uuid")
+	slug := c.PostForm("slug")
 	name := c.PostForm("name")
 	email := c.PostForm("email")
 	role := c.PostForm("role")
@@ -161,6 +164,7 @@ func EditUser(c *gin.Context) {
 	}
 
 	input := services.UserInput{
+		Slug:         slug,
 		Name:         name,
 		Email:        email,
 		Role:         role,

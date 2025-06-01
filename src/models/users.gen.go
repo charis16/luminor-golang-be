@@ -14,6 +14,7 @@ const TableNameUser = "users"
 type User struct {
 	ID           int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	UUID         string    `gorm:"column:uuid;default:gen_random_uuid()" json:"uuid"`
+	Slug         string    `gorm:"column:slug;not null" json:"slug"`
 	Name         string    `gorm:"column:name;not null" json:"name"`
 	Email        string    `gorm:"column:email;not null" json:"email"`
 	Photo        string    `gorm:"column:photo" json:"photo"`

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charis16/luminor-golang-be/src/config"
@@ -89,11 +90,29 @@ func GetAllCategories(page int, limit int, search string) ([]dto.CategoryRespons
 func CreateCategory(input CategoryInput) (*models.Category, error) {
 	tx := config.DB.Begin() // Mulai transaksi
 
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %v", tx.Error)
+	}
+
+	if input.Slug != "" {
+		var count int64
+		if err := tx.Model(&models.User{}).
+			Where("slug = ? ", strings.ReplaceAll(input.Slug, " ", "-")).
+			Count(&count).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to check slug uniqueness: %v", err)
+		}
+		if count > 0 {
+			tx.Rollback()
+			return nil, fmt.Errorf("slug already exists")
+		}
+	}
+
 	category := models.Category{
 		Name:        input.Name,
 		IsPublished: input.IsPublished == "1",
 		Description: input.Description,
-		Slug:        input.Slug,
+		Slug:        strings.ReplaceAll(input.Slug, " ", "-"),
 		PhotoURL:    input.PhotoUrl,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -121,6 +140,21 @@ func GetCategoryByUUID(uuid string) (models.Category, error) {
 
 func UpdateCategory(uuid string, input CategoryInput) (models.Category, error) {
 	tx := config.DB.Begin()
+
+	if input.Slug != "" {
+		var count int64
+		if err := tx.Model(&models.Category{}).
+			Where("slug = ? AND uuid != ?", strings.ReplaceAll(input.Slug, " ", "-"), uuid).
+			Count(&count).Error; err != nil {
+			tx.Rollback()
+			return models.Category{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
+		}
+		if count > 0 {
+			tx.Rollback()
+			return models.Category{}, fmt.Errorf("slug already exists")
+		}
+	}
+
 	var category models.Category
 
 	if err := tx.Where("uuid = ?", uuid).First(&category).Error; err != nil {
@@ -131,7 +165,7 @@ func UpdateCategory(uuid string, input CategoryInput) (models.Category, error) {
 	category.Name = input.Name
 	category.IsPublished = input.IsPublished == "1"
 	category.Description = input.Description
-	category.Slug = input.Slug
+	category.Slug = strings.ReplaceAll(input.Slug, " ", "-")
 
 	if input.PhotoUrl != "" && input.PhotoUrl != "undefined" {
 		category.PhotoURL = input.PhotoUrl

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charis16/luminor-golang-be/src/config"
 	"github.com/charis16/luminor-golang-be/src/dto"
@@ -13,6 +14,7 @@ type UserInput struct {
 	Name         string `form:"name" binding:"required"`
 	Email        string `form:"email" binding:"required,email"`
 	Role         string `form:"role" binding:"required"`
+	Slug         string
 	Description  string
 	PhotoURL     string
 	Password     string
@@ -84,7 +86,27 @@ func GetUserByUUID(uuid string) (models.User, error) {
 }
 
 func CreateUser(input UserInput) (models.User, error) {
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		return models.User{}, fmt.Errorf("failed to begin transaction: %v", tx.Error)
+	}
+
+	if input.Slug != "" {
+		var count int64
+		if err := tx.Model(&models.User{}).
+			Where("slug = ? ", strings.ReplaceAll(input.Slug, " ", "-")).
+			Count(&count).Error; err != nil {
+			tx.Rollback()
+			return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
+		}
+		if count > 0 {
+			tx.Rollback()
+			return models.User{}, fmt.Errorf("slug already exists")
+		}
+	}
+
 	user := models.User{
+		Slug:         strings.ReplaceAll(input.Slug, " ", "-"),
 		Name:         input.Name,
 		Email:        input.Email,
 		Role:         input.Role,
@@ -102,11 +124,6 @@ func CreateUser(input UserInput) (models.User, error) {
 	}
 	if input.PhotoURL != "" {
 		user.Photo = input.PhotoURL
-	}
-
-	tx := config.DB.Begin()
-	if tx.Error != nil {
-		return models.User{}, fmt.Errorf("failed to begin transaction: %v", tx.Error)
 	}
 
 	if err := tx.Create(&user).Error; err != nil {
@@ -135,7 +152,23 @@ func UpdateUser(uuid string, input UserInput) (models.User, error) {
 		return models.User{}, fmt.Errorf("failed to find user: %v", err)
 	}
 
+	// Cek apakah slug sudah ada di user lain (selain user ini sendiri)
+	if input.Slug != "" {
+		var count int64
+		if err := tx.Model(&models.User{}).
+			Where("slug = ? AND id != ?", strings.ReplaceAll(input.Slug, " ", "-"), user.ID).
+			Count(&count).Error; err != nil {
+			tx.Rollback()
+			return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
+		}
+		if count > 0 {
+			tx.Rollback()
+			return models.User{}, fmt.Errorf("slug already exists")
+		}
+	}
+
 	// Update field
+	user.Slug = strings.ReplaceAll(input.Slug, " ", "-")
 	user.Name = input.Name
 	user.Email = input.Email
 	user.Role = input.Role

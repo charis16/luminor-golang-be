@@ -2,6 +2,7 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     uuid UUID UNIQUE DEFAULT gen_random_uuid(),
 
+    slug VARCHAR(255) UNIQUE,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     photo VARCHAR(255),
