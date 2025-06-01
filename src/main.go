@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/charis16/luminor-golang-be/src/config"
 	"github.com/charis16/luminor-golang-be/src/routes"
@@ -27,10 +28,12 @@ func main() {
 
 	r := gin.Default()
 
-	feUrl := utils.GetEnvOrDefault("FE_URL", "http://localhost:3000")
+	feUrls := utils.GetEnvOrDefault("FE_URL", "http://localhost:3000,http://www.localhost:3000")
+	originList := strings.Split(feUrls, ",")
+	allowOrigins := make([]string, 0, len(originList))
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{feUrl}, // frontend kamu
+		AllowOrigins:     allowOrigins, // frontend kamu
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Set-Cookie"},
