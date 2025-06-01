@@ -28,9 +28,15 @@ func main() {
 
 	r := gin.Default()
 
-	feUrls := utils.GetEnvOrDefault("FE_URL", "http://localhost:3000,http://www.localhost:3000")
+	feUrls := utils.GetEnvOrDefault("FE_URL", "http://localhost:3000")
 	originList := strings.Split(feUrls, ",")
 	allowOrigins := make([]string, 0, len(originList))
+
+	for _, origin := range originList {
+		if trimmed := strings.TrimSpace(origin); trimmed != "" {
+			allowOrigins = append(allowOrigins, trimmed)
+		}
+	}
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins, // frontend kamu
