@@ -208,3 +208,34 @@ func GetCategoryOptions(c *gin.Context) {
 		"data": options,
 	})
 }
+
+func GetCategoryBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+
+	if slug == "" {
+		utils.RespondError(c, http.StatusBadRequest, "slug is required")
+		return
+	}
+
+	category, err := services.GetCategoryBySlug(slug)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if category.UUID == "" {
+		utils.RespondError(c, http.StatusNotFound, "category not found")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": gin.H{
+			"uuid":        category.UUID,
+			"name":        category.Name,
+			"description": category.Description,
+			"slug":        category.Slug,
+			"photo_url":   category.PhotoUrl,
+			"users":       category.Users,
+		},
+	})
+}

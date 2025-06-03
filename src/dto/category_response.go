@@ -17,3 +17,12 @@ type CategoryOption struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }
+
+type CategoryBySlugResponse struct {
+	UUID        string         `json:"uuid"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Slug        string         `json:"slug"`
+	PhotoUrl    string         `json:"photo_url"`
+	Users       []UserResponse `json:"users"`
+}

@@ -11,6 +11,33 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+func GetAlbumByCategorySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	if slug == "" {
+		utils.RespondError(c, http.StatusBadRequest, "slug is required")
+		return
+	}
+
+	filter := c.Query("filter")
+	nextQuery := c.Query("next")
+	next, err := strconv.Atoi(nextQuery)
+	if err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "invalid next query parameter")
+		return
+	}
+
+	albums, err := services.GetAlbumByCategorySlug(slug, next, 10, filter)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get albums by category slug")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": albums.Data,
+		"next": albums.NextValue,
+	})
+}
+
 func GetLatestAlbum(c *gin.Context) {
 	album, err := services.GetLatestAlbums()
 	if err != nil {

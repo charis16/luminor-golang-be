@@ -286,3 +286,54 @@ func GetCategoryOptions() ([]dto.CategoryOption, error) {
 
 	return options, nil
 }
+
+func GetCategoryBySlug(slug string) (dto.CategoryBySlugResponse, error) {
+	var category models.Category
+	if err := config.DB.Where("slug = ?", slug).First(&category).Error; err != nil {
+		return dto.CategoryBySlugResponse{}, err
+	}
+
+	if category.UUID == "" {
+		return dto.CategoryBySlugResponse{}, fmt.Errorf("category not found")
+	}
+
+	var users []struct {
+		UUID string
+		Slug string
+		Name string
+	}
+
+	subQuery := config.DB.
+		Table("albums").
+		Select("user_id").
+		Where("category_id = ? AND is_published = ?", category.ID, true)
+
+	if err := config.DB.
+		Table("users").
+		Select("uuid, slug, name").
+		Where("id IN (?) AND is_published = ?", subQuery, true).
+		Scan(&users).Error; err != nil {
+		return dto.CategoryBySlugResponse{}, err
+	}
+
+	// You can attach users to category or return them as needed
+	// Example: category.Users = users (if you have such a field)
+
+	usersResp := make([]dto.UserResponse, 0, len(users))
+	for _, u := range users {
+		usersResp = append(usersResp, dto.UserResponse{
+			UUID: u.UUID,
+			Name: u.Name,
+			Slug: u.Slug,
+		})
+	}
+
+	return dto.CategoryBySlugResponse{
+		UUID:        category.UUID,
+		Name:        category.Name,
+		Description: category.Description,
+		Slug:        category.Slug,
+		PhotoUrl:    category.PhotoURL,
+		Users:       usersResp,
+	}, nil
+}

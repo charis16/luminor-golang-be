@@ -41,6 +41,88 @@ func GetLatestAlbums() ([]models.Album, error) {
 	return albums, nil
 }
 
+func GetAlbumByCategorySlug(slug string, nextTime int,
+	limit int, filter string) (dto.AlbumResponseList, error) {
+	var albums []models.Album
+	var nextTimestamp int64
+
+	query := config.DB.
+		Preload("User").
+		Preload("Category").
+		Where("is_published = ?", true).
+		Order("created_at DESC").
+		Limit(limit)
+
+	if slug != "" && slug != "all" {
+		var category models.Category
+		if err := config.DB.Where("slug = ?", slug).First(&category).Error; err != nil {
+			return dto.AlbumResponseList{
+				Data:      []dto.AlbumResponse{},
+				NextValue: 999999999,
+			}, err
+		}
+		query = query.Where("category_id = ?", category.ID)
+	}
+
+	if filter != "" && filter != "all" {
+		var user models.User
+		if err := config.DB.Where("slug = ?", filter).First(&user).Error; err != nil {
+			return dto.AlbumResponseList{
+				Data:      []dto.AlbumResponse{},
+				NextValue: 999999999,
+			}, err
+		}
+		query = query.Where("user_id = ?", user.ID)
+	}
+
+	if nextTime != 0 {
+		query = query.Where("UNIX_TIMESTAMP(created_at) < ?", nextTime)
+	}
+
+	if err := query.Find(&albums).Error; err != nil {
+		return dto.AlbumResponseList{
+			Data:      []dto.AlbumResponse{},
+			NextValue: 999999999,
+		}, err
+	}
+
+	if len(albums) == 0 {
+		return dto.AlbumResponseList{
+			Data:      []dto.AlbumResponse{},
+			NextValue: 999999999,
+		}, nil
+	}
+
+	nextTimestamp = albums[len(albums)-1].CreatedAt.Unix()
+
+	var items []dto.AlbumResponse
+	for _, album := range albums {
+		items = append(items, dto.AlbumResponse{
+			UUID:         album.UUID,
+			Slug:         album.Slug,
+			Title:        album.Title,
+			CategoryId:   album.Category.UUID,
+			CategoryName: album.Category.Name,
+			CategorySlug: album.Category.Slug,
+			Description:  album.Description,
+			Images:       album.Images,
+			Thumbnail:    album.Thumbnail,
+			IsPublished:  album.IsPublished,
+			CreatedAt:    album.CreatedAt,
+			UpdatedAt:    album.UpdatedAt,
+			UserID:       album.User.UUID,
+			UserName:     album.User.Name,
+			UserAvatar:   album.User.Photo,
+			UserSlug:     album.User.Slug,
+		})
+	}
+
+	return dto.AlbumResponseList{
+		Data:      items,
+		NextValue: nextTimestamp,
+	}, nil
+}
+
 func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int64, error) {
 	var albums []models.Album
 	var total int64
@@ -78,6 +160,7 @@ func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int6
 			Title:        album.Title,
 			CategoryId:   album.Category.UUID,
 			CategoryName: album.Category.Name,
+			CategorySlug: album.Category.Slug,
 			Description:  album.Description,
 			Images:       album.Images,
 			Thumbnail:    album.Thumbnail,
@@ -87,6 +170,7 @@ func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int6
 			UserID:       album.User.UUID,
 			UserName:     album.User.Name,
 			UserAvatar:   album.User.Photo,
+			UserSlug:     album.User.Slug,
 		}
 	}
 

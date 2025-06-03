@@ -10,6 +10,7 @@ func CategoryRoutes(rg *gin.RouterGroup) {
 	category := rg.Group("/categories")
 	category.GET("/", controllers.GetPublishedCategories)
 	category.GET("/options", controllers.GetCategoryOptions)
+	category.GET("/website/:slug", controllers.GetCategoryBySlug)
 	category.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{
 		category.GET("/lists", controllers.GetCategories)

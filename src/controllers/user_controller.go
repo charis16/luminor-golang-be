@@ -306,6 +306,32 @@ func GetTeamMembers(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, gin.H{
-		"data": teamMembers,
+		"data": func() []gin.H {
+			result := make([]gin.H, 0, len(teamMembers))
+			for _, user := range teamMembers {
+				result = append(result, gin.H{
+					"uuid":          user.UUID,
+					"name":          user.Name,
+					"email":         user.Email,
+					"role":          user.Role,
+					"description":   user.Description,
+					"slug":          user.Slug,
+					"phone_number":  user.PhoneNumber,
+					"url_instagram": user.URLInstagram,
+					"url_tiktok":    user.URLTikTok,
+					"url_facebook":  user.URLFacebook,
+					"url_youtube":   user.URLYoutube,
+					"is_published":  user.IsPublished,
+					"photo_url": func() interface{} {
+						if user.Photo == "" {
+							return nil
+						} else {
+							return user.Photo
+						}
+					}(),
+				})
+			}
+			return result
+		}(),
 	})
 }
