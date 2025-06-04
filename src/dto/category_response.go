@@ -26,3 +26,4 @@ type CategoryBySlugResponse struct {
 	PhotoUrl    string         `json:"photo_url"`
 	Users       []UserResponse `json:"users"`
 }
+

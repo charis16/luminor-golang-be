@@ -10,6 +10,7 @@ func UserRoutes(rg *gin.RouterGroup) {
 	users := rg.Group("/users")
 	users.GET("/team-members", controllers.GetTeamMembers)
 	users.GET("/options", controllers.GetUserOptions)
+	users.GET("/website/:slug", controllers.GetUserPortfolioBySlug)
 	users.Use(middleware.AdminRequireAuth(), middleware.RequireRole("admin"))
 	{
 		users.GET("/lists", controllers.GetUsers)

@@ -24,3 +24,8 @@ type UserOption struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }
+
+type UserPortfolioResponse struct {
+	User       UserResponse       `json:"users"`
+	Categories []CategoryResponse `json:"categories"`
+}

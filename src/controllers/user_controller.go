@@ -10,6 +10,52 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetUserPortfolioBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	if slug == "" {
+		utils.RespondError(c, http.StatusBadRequest, "slug is required")
+		return
+	}
+
+	user, err := services.GetUserPortfolioBySlug(slug)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get album by slug")
+		return
+	}
+
+	if user.User.UUID == "" {
+		utils.RespondError(c, http.StatusNotFound, "album not found")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": gin.H{
+			"user": gin.H{
+				"uuid":          user.User.UUID,
+				"name":          user.User.Name,
+				"email":         user.User.Email,
+				"role":          user.User.Role,
+				"description":   user.User.Description,
+				"slug":          user.User.Slug,
+				"phone_number":  user.User.PhoneNumber,
+				"url_instagram": user.User.URLInstagram,
+				"url_tiktok":    user.User.URLTikTok,
+				"url_facebook":  user.User.URLFacebook,
+				"url_youtube":   user.User.URLYoutube,
+				"is_published":  user.User.IsPublished,
+				"photo_url": func() interface{} {
+					if user.User.Photo == "" {
+						return nil
+					} else {
+						return user.User.Photo
+					}
+				}(),
+			},
+			"categories": user.Categories,
+		},
+	})
+}
+
 func GetUsers(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")

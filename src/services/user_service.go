@@ -27,6 +27,67 @@ type UserInput struct {
 	IsPublished  bool // tetap string kalau dari form
 }
 
+func GetUserPortfolioBySlug(slug string) (dto.UserPortfolioResponse, error) {
+	var user models.User
+	if err := config.DB.Where("slug = ?", slug).First(&user).Error; err != nil {
+		return dto.UserPortfolioResponse{}, fmt.Errorf("failed to get user by slug: %v", err)
+	}
+
+	if user.UUID == "" {
+		return dto.UserPortfolioResponse{}, fmt.Errorf("user not found")
+	}
+
+	subQuery := config.DB.
+		Table("albums").
+		Select("category_id").
+		Where("user_id = ? AND is_published = ?", user.ID, true)
+
+	var categories []models.Category
+	if err := config.DB.
+		Table("categories").
+		Where("id IN (?) AND is_published = ?", subQuery, true).
+		Find(&categories).Error; err != nil {
+		return dto.UserPortfolioResponse{}, err
+	}
+
+	categoryRes := make([]dto.CategoryResponse, 0, len(categories))
+	for _, c := range categories {
+		categoryRes = append(categoryRes, dto.CategoryResponse{
+			UUID:        c.UUID,
+			Name:        c.Name,
+			Slug:        c.Slug,
+			Description: c.Description,
+			CreatedAt:   c.CreatedAt,
+			UpdatedAt:   c.UpdatedAt,
+			IsPublished: c.IsPublished,
+		})
+	}
+
+	response := dto.UserPortfolioResponse{
+		User: dto.UserResponse{
+			UUID:         user.UUID,
+			Name:         user.Name,
+			Email:        user.Email,
+			Slug:         user.Slug,
+			Photo:        user.Photo,
+			Description:  user.Description,
+			Role:         user.Role,
+			PhoneNumber:  user.PhoneNumber,
+			URLInstagram: user.URLInstagram,
+			URLTikTok:    user.URLTiktok,
+			URLFacebook:  user.URLFacebook,
+			URLYoutube:   user.URLYoutube,
+			IsPublished:  user.IsPublished,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+		},
+		Categories: categoryRes, // Replace with the correct field name from dto.UserPortfolioResponse
+	}
+
+	return response, nil
+
+}
+
 func GetAllUsers(page int, limit int, search string) ([]dto.UserResponse, int64, error) {
 	var users []models.User
 	var total int64
