@@ -11,6 +11,29 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+func GetDetailAlbumBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	if slug == "" {
+		utils.RespondError(c, http.StatusBadRequest, "slug is required")
+		return
+	}
+
+	album, err := services.GetDetailAlbumBySlug(slug)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get album by slug")
+		return
+	}
+
+	if album.UUID == "" {
+		utils.RespondError(c, http.StatusNotFound, "album not found")
+		return
+	}
+
+	utils.RespondSuccess(c, gin.H{
+		"data": album,
+	})
+}
+
 func GetAlbumByCategorySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	if slug == "" {
@@ -45,23 +68,8 @@ func GetLatestAlbum(c *gin.Context) {
 		return
 	}
 
-	var albumList []gin.H
-	for _, a := range album {
-		albumList = append(albumList, gin.H{
-			"uuid":          a.UUID,
-			"slug":          a.Slug,
-			"title":         a.Title,
-			"description":   a.Description,
-			"thumbnail":     a.Thumbnail,
-			"images":        a.Images,
-			"created_at":    a.CreatedAt,
-			"user_name":     a.User.Name,
-			"category_name": a.Category.Name,
-		})
-	}
-
 	utils.RespondSuccess(c, gin.H{
-		"data": albumList,
+		"data": album,
 	})
 }
 

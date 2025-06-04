@@ -26,19 +26,45 @@ type DeleteImageRequest struct {
 	ImageURL string `json:"image_url" binding:"required"`
 }
 
-func GetLatestAlbums() ([]models.Album, error) {
+func mapAlbumToDTO(album models.Album) dto.AlbumResponse {
+	return dto.AlbumResponse{
+		UUID:         album.UUID,
+		Slug:         album.Slug,
+		Title:        album.Title,
+		CategoryId:   album.Category.UUID,
+		CategoryName: album.Category.Name,
+		CategorySlug: album.Category.Slug,
+		Description:  album.Description,
+		Images:       album.Images,
+		Thumbnail:    album.Thumbnail,
+		IsPublished:  album.IsPublished,
+		CreatedAt:    album.CreatedAt,
+		UpdatedAt:    album.UpdatedAt,
+		UserID:       album.User.UUID,
+		UserName:     album.User.Name,
+		UserAvatar:   album.User.Photo,
+		UserSlug:     album.User.Slug,
+	}
+}
+
+func GetLatestAlbums() ([]dto.AlbumResponse, error) {
 	var albums []models.Album
 	if err := config.DB.
-		Select("id", "uuid", "slug", "title", "category_id", "description", "images", "thumbnail", "is_published", "user_id", "created_at", "updated_at").
 		Preload("User").
 		Preload("Category").
 		Order("created_at DESC").
 		Where("is_published = ?", true).
 		Limit(20).
 		Find(&albums).Error; err != nil {
-		return nil, err
+		return []dto.AlbumResponse{}, err
 	}
-	return albums, nil
+
+	var items []dto.AlbumResponse
+	for _, album := range albums {
+		items = append(items, mapAlbumToDTO(album))
+	}
+
+	return items, nil
 }
 
 func GetAlbumByCategorySlug(slug string, nextTime int,
@@ -97,30 +123,26 @@ func GetAlbumByCategorySlug(slug string, nextTime int,
 
 	var items []dto.AlbumResponse
 	for _, album := range albums {
-		items = append(items, dto.AlbumResponse{
-			UUID:         album.UUID,
-			Slug:         album.Slug,
-			Title:        album.Title,
-			CategoryId:   album.Category.UUID,
-			CategoryName: album.Category.Name,
-			CategorySlug: album.Category.Slug,
-			Description:  album.Description,
-			Images:       album.Images,
-			Thumbnail:    album.Thumbnail,
-			IsPublished:  album.IsPublished,
-			CreatedAt:    album.CreatedAt,
-			UpdatedAt:    album.UpdatedAt,
-			UserID:       album.User.UUID,
-			UserName:     album.User.Name,
-			UserAvatar:   album.User.Photo,
-			UserSlug:     album.User.Slug,
-		})
+		items = append(items, mapAlbumToDTO(album))
 	}
 
 	return dto.AlbumResponseList{
 		Data:      items,
 		NextValue: nextTimestamp,
 	}, nil
+}
+
+func GetDetailAlbumBySlug(slug string) (dto.AlbumResponse, error) {
+	var album models.Album
+	if err := config.DB.
+		Preload("User").
+		Preload("Category").
+		Where("slug = ? AND is_published = ?", slug, true).
+		First(&album).Error; err != nil {
+		return dto.AlbumResponse{}, err
+	}
+
+	return mapAlbumToDTO(album), nil
 }
 
 func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int64, error) {
@@ -153,25 +175,7 @@ func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int6
 	// Mapping ke response DTO
 	response := make([]dto.AlbumResponse, len(albums))
 	for i, album := range albums {
-
-		response[i] = dto.AlbumResponse{
-			UUID:         album.UUID,
-			Slug:         album.Slug,
-			Title:        album.Title,
-			CategoryId:   album.Category.UUID,
-			CategoryName: album.Category.Name,
-			CategorySlug: album.Category.Slug,
-			Description:  album.Description,
-			Images:       album.Images,
-			Thumbnail:    album.Thumbnail,
-			IsPublished:  album.IsPublished,
-			CreatedAt:    album.CreatedAt,
-			UpdatedAt:    album.UpdatedAt,
-			UserID:       album.User.UUID,
-			UserName:     album.User.Name,
-			UserAvatar:   album.User.Photo,
-			UserSlug:     album.User.Slug,
-		}
+		response[i] = mapAlbumToDTO(album)
 	}
 
 	return response, total, nil
@@ -192,14 +196,16 @@ func CreateAlbum(input AlbumInput) (*models.Album, error) {
 		return nil, err
 	}
 
+	slug := utils.GenerateSlug(input.Slug)
+
 	// Cek apakah slug sudah ada
 	var existingAlbum models.Album
-	if err := tx.Where("slug = ?", strings.ReplaceAll(input.Slug, " ", "-")).First(&existingAlbum).Error; err == nil {
+	if err := tx.Where("slug = ?", slug).First(&existingAlbum).Error; err == nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("slug already exists")
 	}
 	album := models.Album{
-		Slug:        strings.ReplaceAll(input.Slug, " ", "-"),
+		Slug:        slug,
 		Title:       input.Title,
 		CategoryID:  category.ID,
 		Description: input.Description,
@@ -245,9 +251,10 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 		return models.Album{}, err
 	}
 
-	if input.Slug != album.Slug {
+	slug := utils.GenerateSlug(input.Slug)
+	if slug != album.Slug {
 		var existingAlbum models.Album
-		if err := tx.Where("slug = ? AND uuid != ?", strings.ReplaceAll(input.Slug, " ", "-"), uuid).First(&existingAlbum).Error; err == nil {
+		if err := tx.Where("slug = ? AND uuid != ?", slug, uuid).First(&existingAlbum).Error; err == nil {
 			tx.Rollback()
 			return models.Album{}, fmt.Errorf("slug already exists")
 		}
@@ -265,7 +272,7 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 		return models.Album{}, err
 	}
 
-	album.Slug = strings.ReplaceAll(input.Slug, " ", "-")
+	album.Slug = slug
 	album.Title = input.Title
 	album.Description = input.Description
 
@@ -275,24 +282,8 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 	}
 
 	if input.Images != nil {
-		var filteredOldImages []string
-		for _, img := range album.Images {
-			img = strings.Trim(img, `"`)
-			if img != "" {
-				filteredOldImages = append(filteredOldImages, img)
-			}
-		}
-		combinedImages := append(filteredOldImages, input.Images...)
-		// Remove duplicate URLs
-		uniqueImagesMap := make(map[string]struct{})
-		var uniqueImages []string
-		for _, img := range combinedImages {
-			if _, exists := uniqueImagesMap[img]; !exists && img != "" {
-				uniqueImagesMap[img] = struct{}{}
-				uniqueImages = append(uniqueImages, img)
-			}
-		}
-		album.Images = uniqueImages
+		combined := append(album.Images, input.Images...)
+		album.Images = utils.RemoveDuplicateStrings(combined)
 	}
 
 	if input.Thumbnail != "" && input.Thumbnail != "undefined" {
