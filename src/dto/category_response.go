@@ -14,8 +14,10 @@ type CategoryResponse struct {
 }
 
 type CategoryOption struct {
-	UUID string `json:"uuid"`
-	Name string `json:"name"`
+	UUID  string `json:"uuid"`
+	Name  string `json:"name"`
+	Slug  string `json:"slug"`
+	Photo string `json:"photo_url"`
 }
 
 type CategoryBySlugResponse struct {
@@ -26,4 +28,3 @@ type CategoryBySlugResponse struct {
 	PhotoUrl    string         `json:"photo_url"`
 	Users       []UserResponse `json:"users"`
 }
-

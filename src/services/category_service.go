@@ -269,7 +269,7 @@ func DeleteImageCategory(uuid string) error {
 
 func GetCategoryOptions() ([]dto.CategoryOption, error) {
 	var categories []models.Category
-	if err := config.DB.Select("uuid, name").
+	if err := config.DB.Select("uuid, name, slug, photo_url").
 		Where("is_published = ?", true).
 		Order("name ASC").
 		Find(&categories).Error; err != nil {
@@ -279,8 +279,10 @@ func GetCategoryOptions() ([]dto.CategoryOption, error) {
 	options := make([]dto.CategoryOption, len(categories))
 	for i, category := range categories {
 		options[i] = dto.CategoryOption{
-			UUID: category.UUID,
-			Name: category.Name,
+			UUID:  category.UUID,
+			Name:  category.Name,
+			Slug:  category.Slug,
+			Photo: category.PhotoURL,
 		}
 	}
 
