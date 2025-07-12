@@ -4,6 +4,7 @@ CREATE TABLE categories (
     name VARCHAR(255),
     description TEXT,
     slug VARCHAR(255) UNIQUE,
+    youtube_url TEXT,
     photo_url TEXT,
     is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

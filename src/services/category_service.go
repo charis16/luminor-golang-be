@@ -15,6 +15,7 @@ type CategoryInput struct {
 	Slug        string `form:"slug"`
 	Description string `form:"description" validate:"required"`
 	IsPublished string `form:"is_published" validate:"required"`
+	YoutubeURL  string `form:"youtube_url"`
 	PhotoUrl    string `form:"-"` // handled manually
 }
 
@@ -22,7 +23,7 @@ func GetPublishedCategories() ([]dto.CategoryResponse, error) {
 	var categories []models.Category
 
 	if err := config.DB.Where("is_published = ?", true).
-		Select("uuid", "name", "is_published", "slug", "description", "photo_url", "created_at", "updated_at").
+		Select("uuid", "name", "is_published", "slug", "description", "photo_url", "created_at", "updated_at", "youtube_url").
 		Order("created_at DESC").
 		Find(&categories).Error; err != nil {
 		return nil, err
@@ -40,6 +41,7 @@ func GetPublishedCategories() ([]dto.CategoryResponse, error) {
 			IsPublished: category.IsPublished,
 			CreatedAt:   category.CreatedAt,
 			UpdatedAt:   category.UpdatedAt,
+			YoutubeURL:  category.YoutubeURL,
 		}
 	}
 
@@ -64,7 +66,6 @@ func GetAllCategories(page int, limit int, search string) ([]dto.CategoryRespons
 
 	offset := (page - 1) * limit
 	if err := query.
-		Select("uuid", "name", "is_published", "created_at", "updated_at").
 		Limit(limit).
 		Offset(offset).
 		Find(&categories).Error; err != nil {
@@ -79,6 +80,7 @@ func GetAllCategories(page int, limit int, search string) ([]dto.CategoryRespons
 			Name:        category.Name,
 			IsPublished: category.IsPublished,
 			CreatedAt:   category.CreatedAt,
+			YoutubeURL:  category.YoutubeURL,
 			UpdatedAt:   category.UpdatedAt,
 		}
 	}
@@ -114,6 +116,7 @@ func CreateCategory(input CategoryInput) (*models.Category, error) {
 
 	category := models.Category{
 		Name:        input.Name,
+		YoutubeURL:  input.YoutubeURL,
 		IsPublished: input.IsPublished == "1",
 		Description: input.Description,
 		Slug:        slug,
@@ -171,6 +174,7 @@ func UpdateCategory(uuid string, input CategoryInput) (models.Category, error) {
 	}
 
 	category.Name = input.Name
+	category.YoutubeURL = input.YoutubeURL
 	category.IsPublished = input.IsPublished == "1"
 	category.Description = input.Description
 	category.Slug = slug
@@ -275,22 +279,25 @@ func DeleteImageCategory(uuid string) error {
 	return tx.Commit().Error
 }
 
-func GetCategoryOptions() ([]dto.CategoryOption, error) {
+func GetCategoryOptions() ([]dto.CategoryResponse, error) {
 	var categories []models.Category
-	if err := config.DB.Select("uuid, name, slug, photo_url").
-		Where("is_published = ?", true).
+	if err := config.DB.Where("is_published = ?", true).
 		Order("name ASC").
 		Find(&categories).Error; err != nil {
 		return nil, err
 	}
 
-	options := make([]dto.CategoryOption, len(categories))
+	options := make([]dto.CategoryResponse, len(categories))
 	for i, category := range categories {
-		options[i] = dto.CategoryOption{
-			UUID:  category.UUID,
-			Name:  category.Name,
-			Slug:  category.Slug,
-			Photo: category.PhotoURL,
+		options[i] = dto.CategoryResponse{
+			UUID:        category.UUID,
+			Name:        category.Name,
+			Slug:        category.Slug,
+			PhotoUrl:    category.PhotoURL,
+			YoutubeURL:  category.YoutubeURL,
+			IsPublished: category.IsPublished,
+			CreatedAt:   category.CreatedAt,
+			UpdatedAt:   category.UpdatedAt,
 		}
 	}
 

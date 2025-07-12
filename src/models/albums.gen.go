@@ -16,6 +16,7 @@ type Album struct {
 	Title       string         `gorm:"column:title" json:"title"`
 	CategoryID  int32          `gorm:"column:category_id" json:"category_id"`
 	Description string         `gorm:"column:description" json:"description"`
+	YoutubeURL  string         `gorm:"column:youtube_url" json:"youtube_url"`
 	Images      pq.StringArray `gorm:"type:text[]" json:"images"`
 	Thumbnail   string         `gorm:"column:thumbnail" json:"thumbnail"`
 	IsPublished bool           `gorm:"column:is_published" json:"is_published"`

@@ -13,6 +13,7 @@ type Category struct {
 	Name        string    `gorm:"column:name" json:"name"`
 	Description string    `gorm:"column:description" json:"description"`
 	Slug        string    `gorm:"column:slug;uniqueIndex" json:"slug"`
+	YoutubeURL  string    `gorm:"column:youtube_url" json:"youtube_url"`
 	PhotoURL    string    `gorm:"column:photo_url" json:"photo_url"`
 	IsPublished bool      `gorm:"column:is_published" json:"is_published"`
 	CreatedAt   time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`

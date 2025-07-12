@@ -6,6 +6,7 @@ CREATE TABLE albums (
     category_id INT REFERENCES categories(id) ON DELETE CASCADE,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     description TEXT,
+    youtube_url TEXT,
     images TEXT[], -- Postgres supports array data types, so this is valid
     thumbnail VARCHAR(255),
     is_published BOOLEAN DEFAULT FALSE,

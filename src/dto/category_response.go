@@ -8,16 +8,10 @@ type CategoryResponse struct {
 	Description string    `json:"description"`
 	Slug        string    `json:"slug"`
 	PhotoUrl    string    `json:"photo_url"`
+	YoutubeURL  string    `json:"youtube_url"`
 	IsPublished bool      `json:"is_published"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-type CategoryOption struct {
-	UUID  string `json:"uuid"`
-	Name  string `json:"name"`
-	Slug  string `json:"slug"`
-	Photo string `json:"photo_url"`
 }
 
 type CategoryBySlugResponse struct {

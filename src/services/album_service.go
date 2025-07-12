@@ -18,6 +18,7 @@ type AlbumInput struct {
 	Description string   `form:"description" binding:"required"`
 	UserID      string   `form:"user_id" binding:"required"`
 	IsPublished string   `form:"is_published" binding:"required"`
+	YoutubeURL  string   `form:"youtube_url"`
 	Images      []string `form:"-"` // handled manually
 	Thumbnail   string   `form:"-"` // handled manually
 }
@@ -35,6 +36,7 @@ func mapAlbumToDTO(album models.Album) dto.AlbumResponse {
 		CategoryName: album.Category.Name,
 		CategorySlug: album.Category.Slug,
 		Description:  album.Description,
+		YoutubeURL:   album.YoutubeURL,
 		Images:       album.Images,
 		Thumbnail:    album.Thumbnail,
 		IsPublished:  album.IsPublished,
@@ -163,7 +165,6 @@ func GetAllAlbums(page int, limit int, search string) ([]dto.AlbumResponse, int6
 
 	offset := (page - 1) * limit
 	if err := query.
-		Select("id", "uuid", "slug", "title", "category_id", "description", "images", "thumbnail", "is_published", "user_id", "created_at", "updated_at").
 		Preload("User").
 		Preload("Category").
 		Limit(limit).
@@ -216,6 +217,7 @@ func CreateAlbum(input AlbumInput) (*models.Album, error) {
 		Description: input.Description,
 		Images:      input.Images,
 		Thumbnail:   input.Thumbnail,
+		YoutubeURL:  input.YoutubeURL,
 		UserID:      user.ID,
 		IsPublished: input.IsPublished == "true",
 		CreatedAt:   time.Now(),
@@ -237,7 +239,6 @@ func CreateAlbum(input AlbumInput) (*models.Album, error) {
 func GetAlbumByUUID(uuid string) (models.Album, error) {
 	var album models.Album
 	if err := config.DB.
-		Select("id", "uuid", "slug", "title", "category_id", "description", "images", "thumbnail", "is_published", "user_id", "created_at", "updated_at").
 		Preload("User").
 		Preload("Category").
 		Where("uuid = ?", uuid).First(&album).Error; err != nil {
@@ -280,6 +281,7 @@ func UpdateAlbum(uuid string, input AlbumInput) (models.Album, error) {
 	album.Slug = slug
 	album.Title = input.Title
 	album.Description = input.Description
+	album.YoutubeURL = input.YoutubeURL
 
 	// Update Category if changed
 	if input.CategoryId != "" && category.ID != album.CategoryID {

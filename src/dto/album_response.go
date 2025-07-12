@@ -16,6 +16,7 @@ type AlbumResponse struct {
 	UserAvatar   string    `json:"user_avatar"`
 	UserSlug     string    `json:"user_slug"`
 	Description  string    `json:"description"`
+	YoutubeURL   string    `json:"youtube_url"`
 	Thumbnail    string    `json:"thumbnail"`
 	Images       []string  `json:"images"` // ubah jadi array string
 	IsPublished  bool      `json:"is_published"`
