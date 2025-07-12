@@ -107,7 +107,7 @@ func EditCategory(c *gin.Context) {
 	}
 
 	var input services.CategoryInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBindWith(&input, binding.FormMultipart); err != nil {
 		utils.RespondError(c, http.StatusBadRequest, "Invalid input format")
 		return
 	}
