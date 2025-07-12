@@ -171,6 +171,7 @@ func GetCategoryByUUID(c *gin.Context) {
 			"description":  category.Description,
 			"slug":         category.Slug,
 			"photo_url":    category.PhotoURL,
+			"youtube_url":  category.YoutubeURL,
 			"is_published": category.IsPublished,
 			"created_at":   category.CreatedAt,
 			"updated_at":   category.UpdatedAt,

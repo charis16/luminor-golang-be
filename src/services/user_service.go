@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/charis16/luminor-golang-be/src/config"
 	"github.com/charis16/luminor-golang-be/src/dto"
@@ -152,22 +151,27 @@ func CreateUser(input UserInput) (models.User, error) {
 		return models.User{}, fmt.Errorf("failed to begin transaction: %v", tx.Error)
 	}
 
-	if input.Slug != "" {
-		var count int64
-		if err := tx.Model(&models.User{}).
-			Where("slug = ? ", strings.ReplaceAll(input.Slug, " ", "-")).
-			Count(&count).Error; err != nil {
-			tx.Rollback()
-			return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
-		}
-		if count > 0 {
-			tx.Rollback()
-			return models.User{}, fmt.Errorf("slug already exists")
-		}
+	slug := input.Slug
+	if slug == "" {
+		slug = utils.GenerateSlug(input.Name)
+	} else {
+		slug = utils.GenerateSlug(slug)
+	}
+
+	var count int64
+	if err := tx.Model(&models.User{}).
+		Where("slug = ? ", slug).
+		Count(&count).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
+	}
+	if count > 0 {
+		tx.Rollback()
+		return models.User{}, fmt.Errorf("slug already exists")
 	}
 
 	user := models.User{
-		Slug:         strings.ReplaceAll(input.Slug, " ", "-"),
+		Slug:         slug,
 		Name:         input.Name,
 		Email:        input.Email,
 		Role:         input.Role,
@@ -213,23 +217,28 @@ func UpdateUser(uuid string, input UserInput) (models.User, error) {
 		return models.User{}, fmt.Errorf("failed to find user: %v", err)
 	}
 
+	slug := input.Slug
+	if slug == "" {
+		slug = utils.GenerateSlug(input.Name)
+	} else {
+		slug = utils.GenerateSlug(slug)
+	}
+
 	// Cek apakah slug sudah ada di user lain (selain user ini sendiri)
-	if input.Slug != "" {
-		var count int64
-		if err := tx.Model(&models.User{}).
-			Where("slug = ? AND id != ?", strings.ReplaceAll(input.Slug, " ", "-"), user.ID).
-			Count(&count).Error; err != nil {
-			tx.Rollback()
-			return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
-		}
-		if count > 0 {
-			tx.Rollback()
-			return models.User{}, fmt.Errorf("slug already exists")
-		}
+	var count int64
+	if err := tx.Model(&models.User{}).
+		Where("slug = ? AND id != ?", slug, user.ID).
+		Count(&count).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, fmt.Errorf("failed to check slug uniqueness: %v", err)
+	}
+	if count > 0 {
+		tx.Rollback()
+		return models.User{}, fmt.Errorf("slug already exists")
 	}
 
 	// Update field
-	user.Slug = strings.ReplaceAll(input.Slug, " ", "-")
+	user.Slug = slug
 	user.Name = input.Name
 	user.Email = input.Email
 	user.Role = input.Role
@@ -358,10 +367,9 @@ func DeleteImageUser(uuid string) error {
 	return nil
 }
 
-func GetUserOptions() ([]dto.UserOption, error) {
+func GetUserOptions() ([]dto.UserResponse, error) {
 	var users []models.User
 	if err := config.DB.
-		Select("uuid, name").
 		Where("is_published = ?", true).
 		Where("role != ?", "admin").
 		Order("created_at DESC").
@@ -369,11 +377,24 @@ func GetUserOptions() ([]dto.UserOption, error) {
 		return nil, fmt.Errorf("failed to get user options: %v", err)
 	}
 
-	response := make([]dto.UserOption, len(users))
+	response := make([]dto.UserResponse, len(users))
 	for i, user := range users {
-		response[i] = dto.UserOption{
-			UUID: user.UUID,
-			Name: user.Name,
+		response[i] = dto.UserResponse{
+			UUID:         user.UUID,
+			Name:         user.Name,
+			Slug:         user.Slug,
+			Photo:        user.Photo,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+			Role:         user.Role,
+			Email:        user.Email,
+			PhoneNumber:  user.PhoneNumber,
+			URLInstagram: user.URLInstagram,
+			URLTikTok:    user.URLTiktok,
+			URLFacebook:  user.URLFacebook,
+			URLYoutube:   user.URLYoutube,
+			IsPublished:  user.IsPublished,
+			Description:  user.Description,
 		}
 	}
 

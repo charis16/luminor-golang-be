@@ -277,6 +277,7 @@ func GetUserByUUID(c *gin.Context) {
 
 	utils.RespondSuccess(c, gin.H{
 		"data": gin.H{
+			"slug":          user.Slug,
 			"uuid":          user.UUID,
 			"name":          user.Name,
 			"email":         user.Email,

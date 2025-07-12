@@ -324,6 +324,7 @@ func GetAlbumByUUID(c *gin.Context) {
 			"thumbnail":    album.Thumbnail,
 			"images":       album.Images,
 			"user_id":      album.User.UUID,
+			"youtube_url":  album.YoutubeURL,
 			"is_published": album.IsPublished,
 			"created_at":   album.CreatedAt,
 			"updated_at":   album.UpdatedAt,
