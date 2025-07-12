@@ -12,7 +12,7 @@ import (
 )
 
 type AlbumInput struct {
-	Slug        string   `form:"slug" binding:"required"`
+	Slug        string   `form:"slug"`
 	Title       string   `form:"title" binding:"required"`
 	CategoryId  string   `form:"category_id" binding:"required"`
 	Description string   `form:"description" binding:"required"`
@@ -196,7 +196,12 @@ func CreateAlbum(input AlbumInput) (*models.Album, error) {
 		return nil, err
 	}
 
-	slug := utils.GenerateSlug(input.Slug)
+	slug := input.Slug
+	if slug == "" {
+		slug = utils.GenerateSlug(input.Title)
+	} else {
+		slug = utils.GenerateSlug(slug)
+	}
 
 	// Cek apakah slug sudah ada
 	var existingAlbum models.Album
