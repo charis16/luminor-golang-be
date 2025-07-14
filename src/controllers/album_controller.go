@@ -20,7 +20,7 @@ func GetDetailAlbumBySlug(c *gin.Context) {
 
 	album, err := services.GetDetailAlbumBySlug(slug)
 	if err != nil {
-		utils.RespondError(c, http.StatusInternalServerError, "Failed to get album by slug")
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get detail album by slug")
 		return
 	}
 

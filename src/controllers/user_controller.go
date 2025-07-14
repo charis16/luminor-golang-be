@@ -19,7 +19,7 @@ func GetUserPortfolioBySlug(c *gin.Context) {
 
 	user, err := services.GetUserPortfolioBySlug(slug)
 	if err != nil {
-		utils.RespondError(c, http.StatusInternalServerError, "Failed to get album by slug")
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to get user portfolio by slug")
 		return
 	}
 
